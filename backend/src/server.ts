@@ -23,6 +23,12 @@ if (!env.naverClientId || !env.naverClientSecret) {
 }
 
 const app = createApp();
-app.listen(env.port, () => {
+const server = app.listen(env.port, () => {
   console.log(`[server] 아산시공무원노동조합 협약기관 안내 백엔드 실행 중 — http://localhost:${env.port}`);
 });
+
+// 폴더/파일 일괄 업로드(PRD 18~20절)는 파일 수가 많거나 용량이 크면 오래 걸릴 수 있다.
+// Node 18+ 기본 requestTimeout(5분)에 걸려 대용량 업로드가 중간에 끊기는 문제가 있어
+// (2026-08-14 실제 발견 — 관리자가 폴더 업로드 중 연결이 끊기는 오류 리포트) 넉넉하게 늘린다.
+server.requestTimeout = 15 * 60 * 1000; // 15분
+server.headersTimeout = 16 * 60 * 1000; // requestTimeout보다 커야 함 (Node 요구사항)

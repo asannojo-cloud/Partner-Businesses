@@ -48,6 +48,12 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:4100",
         changeOrigin: true,
+        // 폴더/파일 일괄 업로드는 용량이 크고 오래 걸릴 수 있다. Vite 개발서버 프록시(http-proxy)의
+        // 기본 타임아웃에 걸려 "ECONNABORTED"로 끊기는 문제가 있어(2026-08-14 실제 발견) 개발
+        // 환경에서는 타임아웃을 비활성화한다. 운영 배포는 Express가 프론트 정적 빌드를 함께
+        // 서빙해 이 프록시 자체가 없으므로 영향받지 않는다.
+        timeout: 0,
+        proxyTimeout: 0,
       },
     },
   },
