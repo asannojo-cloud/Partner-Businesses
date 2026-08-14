@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.env
+*.local
+backend/storage/agreement-files/*
+!backend/storage/agreement-files/.gitkeep
+backend/storage/partner-images/*
+!backend/storage/partner-images/.gitkeep
+backend/tmp/uploads/*
+!backend/tmp/uploads/.gitkeep
+*.log
+.DS_Store
+Thumbs.db
