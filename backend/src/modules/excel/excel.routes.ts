@@ -13,7 +13,13 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: env
 adminExcelRouter.get("/template", (req, res) => {
   const buffer = buildTemplateWorkbook();
   res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  res.setHeader("Content-Disposition", `attachment; filename="협약기관_업로드양식.xlsx"`);
+  // 한글 파일명을 Content-Disposition에 그대로 넣으면 Node가 ERR_INVALID_CHAR로 500을 낸다
+  // (HTTP 헤더는 기본적으로 ASCII만 허용) — RFC 5987 filename*=UTF-8'' 형식으로 인코딩해야 한다
+  // (2026-08-14 실제 발견 — "업로드 양식 다운로드" 클릭 시 오류).
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="agreement-template.xlsx"; filename*=UTF-8''${encodeURIComponent("협약기관_업로드양식.xlsx")}`
+  );
   res.send(buffer);
 });
 

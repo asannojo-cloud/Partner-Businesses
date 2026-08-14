@@ -37,6 +37,24 @@ export default function ExcelJobDetailPage() {
     });
   }
 
+  // 체크박스가 있는(선택 가능한) 행 전체 — 변경없음/오류 행은 애초에 체크박스가 없다.
+  const selectableRows = rows.filter((r) => r.diff_type !== "unchanged" && r.diff_type !== "error" && !r.approved);
+  const allSelected = selectableRows.length > 0 && selectableRows.every((r) => selected.has(r.id));
+
+  function toggleSelectAll() {
+    setSelected(allSelected ? new Set() : new Set(selectableRows.map((r) => r.id)));
+  }
+
+  function toggleSelectGroup(group: RowData["diff_type"]) {
+    const groupRows = rows.filter((r) => r.diff_type === group && !r.approved);
+    const groupAllSelected = groupRows.length > 0 && groupRows.every((r) => selected.has(r.id));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      groupRows.forEach((r) => (groupAllSelected ? next.delete(r.id) : next.add(r.id)));
+      return next;
+    });
+  }
+
   async function handleApprove() {
     setBusy(true);
     setResultMsg(null);
@@ -57,16 +75,33 @@ export default function ExcelJobDetailPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Excel 비교 결과</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Excel 비교 결과</h1>
+        {selectableRows.length > 0 && (
+          <label className="flex items-center gap-2 text-sm text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-1.5 cursor-pointer">
+            <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} />
+            전체선택 ({selected.size}/{selectableRows.length})
+          </label>
+        )}
+      </div>
       {resultMsg && <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">{resultMsg}</p>}
 
       {groups.map((g) => {
         const groupRows = rows.filter((r) => r.diff_type === g);
         if (groupRows.length === 0) return null;
         const meta = GROUP_META[g];
+        const selectableGroupRows = groupRows.filter((r) => !r.approved);
+        const groupAllSelected = selectableGroupRows.length > 0 && selectableGroupRows.every((r) => selected.has(r.id));
         return (
           <section key={g} className="mb-6">
-            <h2 className={`font-bold mb-2 ${meta.color}`}>{meta.icon} {meta.label} ({groupRows.length})</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className={`font-bold ${meta.color}`}>{meta.icon} {meta.label} ({groupRows.length})</h2>
+              {(g === "new" || g === "changed" || g === "ended") && selectableGroupRows.length > 0 && (
+                <button onClick={() => toggleSelectGroup(g)} className="text-xs text-slate-400 underline">
+                  {groupAllSelected ? "이 그룹 선택 해제" : "이 그룹 전체선택"}
+                </button>
+              )}
+            </div>
             <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100">
               {groupRows.map((r) => (
                 <div key={r.id} className="px-4 py-3 flex items-start gap-3">
