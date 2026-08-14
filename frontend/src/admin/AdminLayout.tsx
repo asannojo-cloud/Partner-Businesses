@@ -39,7 +39,7 @@ export default function AdminLayout() {
           to={link.to}
           onClick={() => setMenuOpen(false)}
           className={({ isActive }) =>
-            `block px-5 py-2.5 text-sm ${isActive ? "bg-brand-800 text-white font-medium" : "text-slate-300 hover:bg-brand-800/60"}`
+            `block px-5 py-2.5 text-sm ${isActive ? "bg-slate-800 text-white font-medium" : "text-slate-300 hover:bg-slate-800/60"}`
           }
         >
           {link.label}
@@ -50,7 +50,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-100">
-      <header className="md:hidden flex items-center justify-between bg-brand-900 text-white px-4 py-3 shrink-0">
+      <header className="md:hidden flex items-center justify-between bg-slate-900 text-white px-4 py-3 shrink-0">
         <div>
           <p className="text-[10px] text-slate-400">아산시공무원노동조합</p>
           <p className="font-bold text-sm">협약기관 관리자</p>
@@ -66,22 +66,22 @@ export default function AdminLayout() {
         </button>
       </header>
       {menuOpen && (
-        <nav className="md:hidden bg-brand-900 border-t border-brand-700 shrink-0">
+        <nav className="md:hidden bg-slate-900 border-t border-slate-700 shrink-0">
           {navItems}
-          <div className="p-4 border-t border-brand-700">
+          <div className="p-4 border-t border-slate-700">
             <p className="text-xs text-slate-400 mb-2">{admin.displayName}</p>
             <button onClick={handleLogout} className="text-xs text-slate-300 underline">로그아웃</button>
           </div>
         </nav>
       )}
 
-      <aside className="hidden md:flex w-56 bg-brand-900 text-slate-200 flex-col shrink-0">
-        <div className="p-5 border-b border-brand-700">
+      <aside className="hidden md:flex w-56 bg-slate-900 text-slate-200 flex-col shrink-0">
+        <div className="p-5 border-b border-slate-700">
           <p className="text-xs text-slate-400">아산시공무원노동조합</p>
           <p className="font-bold text-white">협약기관 관리자</p>
         </div>
         <nav className="flex-1 py-3">{navItems}</nav>
-        <div className="p-4 border-t border-brand-700">
+        <div className="p-4 border-t border-slate-700">
           <p className="text-xs text-slate-400 mb-2">{admin.displayName}</p>
           <button onClick={handleLogout} className="text-xs text-slate-300 underline">로그아웃</button>
         </div>
