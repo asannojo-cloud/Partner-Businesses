@@ -1,18 +1,20 @@
 @import "tailwindcss";
 
-/* 브랜드 색상: 민트/틸 계열. bg-brand-900, text-brand-700 등 Tailwind 유틸리티 클래스가
-   이 값들로 자동 생성된다. 조합의 실제 브랜드 컬러가 확정되면 아래 값만 바꾸면 전체 앱에 반영된다. */
+/* 브랜드 색상: 지정된 민트색 #24A6BD를 기준(500)으로 만든 계열. bg-brand-900, text-brand-700 등
+   Tailwind 유틸리티 클래스가 이 값들로 자동 생성된다. #24A6BD는 흰 글자와 함께 배경색으로 쓰기엔
+   명도 대비가 낮아(대비비 약 2.9:1) 배지·링크 등 밝은 영역(500 부근)에 그대로 쓰고, 헤더/버튼처럼
+   흰 글자를 얹는 자리는 같은 색상(Hue)의 더 짙은 톤(700~900)을 사용해 가독성을 확보했다. */
 @theme {
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-200: #99f6e4;
-  --color-brand-300: #5eead4;
-  --color-brand-400: #2dd4bf;
-  --color-brand-500: #14b8a6;
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
+  --color-brand-50: #eafbfc;
+  --color-brand-100: #c8f3f6;
+  --color-brand-200: #94e4ea;
+  --color-brand-300: #5ccdd7;
+  --color-brand-400: #38b3c0;
+  --color-brand-500: #24a6bd;
+  --color-brand-600: #1c8ba0;
+  --color-brand-700: #176f80;
+  --color-brand-800: #145767;
+  --color-brand-900: #123f4a;
 }
 
 html, body, #root {
