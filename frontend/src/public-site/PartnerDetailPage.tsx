@@ -72,9 +72,9 @@ export default function PartnerDetailPage() {
         <h1 className="text-xl font-bold text-slate-900 mb-4">{partner.name}</h1>
 
         {agreement?.main_content && (
-          <section className="mb-4">
-            <h2 className="font-bold text-slate-900 mb-1">협약내용</h2>
-            <p className="text-sm text-slate-600 whitespace-pre-wrap">{agreement.main_content}</p>
+          <section className="bg-brand-50 border border-brand-200 rounded-2xl p-5 mb-4">
+            <p className="font-bold text-brand-900 mb-1">협약내용</p>
+            <p className="text-sm text-brand-800 whitespace-pre-wrap leading-relaxed">{agreement.main_content}</p>
           </section>
         )}
 
