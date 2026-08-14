@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { api, ApiError } from "../shared/api";
 import { useAdminSessionContext } from "./AdminSessionContext";
+import PasswordInput from "../shared/PasswordInput";
 
 export default function AdminSettingsPage() {
   const { admin } = useAdminSessionContext();
@@ -51,34 +52,31 @@ export default function AdminSettingsPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-slate-600 mb-1">현재 비밀번호</label>
-            <input
-              type="password"
+            <PasswordInput
               required
               value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
+              onChange={setCurrentPassword}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               autoComplete="current-password"
             />
           </div>
           <div>
             <label className="block text-sm text-slate-600 mb-1">새 비밀번호 (8자 이상)</label>
-            <input
-              type="password"
+            <PasswordInput
               required
               minLength={8}
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={setNewPassword}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               autoComplete="new-password"
             />
           </div>
           <div>
             <label className="block text-sm text-slate-600 mb-1">새 비밀번호 확인</label>
-            <input
-              type="password"
+            <PasswordInput
               required
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={setConfirmPassword}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               autoComplete="new-password"
             />

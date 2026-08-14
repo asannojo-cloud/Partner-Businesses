@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAdminSessionContext } from "./AdminSessionContext";
 import { ApiError } from "../shared/api";
+import PasswordInput from "../shared/PasswordInput";
 
 export default function AdminLoginPage() {
   const { admin, loading, login } = useAdminSessionContext();
@@ -41,11 +42,10 @@ export default function AdminLoginPage() {
           autoFocus
         />
         <label className="block text-sm text-slate-600 mb-1">비밀번호</label>
-        <input
-          type="password"
-          className="w-full mb-6 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        <PasswordInput
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={setPassword}
+          className="w-full mb-6 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
         <button
