@@ -23,9 +23,13 @@ adminFilesRouter.post("/agreement/:partnerId", documentUpload.single("file"), as
   const stored = await storeFile("agreement", req.file.buffer, req.file.originalname);
   const agreementSignedDate = req.body?.agreementSignedDate || null;
 
+  // is_public 기본값은 DB상 false지만, 관리자가 업로드하는 협약서는 조합원이 바로 볼 수 있어야
+  // 하는 게 일반적인 용도이므로 업로드 시점에 곧바로 공개로 등록한다 (비공개로 두고 싶으면
+  // 상세화면의 "공개" 체크박스를 해제하면 된다) — 2026-08-14: "업로드하면 이용자 페이지에서도
+  // 바로 보여야 하는데 안 보인다"는 문의에 대응.
   const { rows } = await pool.query(
-    `INSERT INTO agreement_files (partner_id, file_name, file_path, file_type, storage_provider, agreement_signed_date, uploaded_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+    `INSERT INTO agreement_files (partner_id, file_name, file_path, file_type, storage_provider, agreement_signed_date, uploaded_by, is_public)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,true) RETURNING *`,
     [partnerId, req.file.originalname, stored.storagePath, stored.fileType, stored.storageProvider,
      agreementSignedDate, req.session.auth!.id]
   );

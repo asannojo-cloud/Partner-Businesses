@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "../shared/api";
 import { CATEGORIES } from "../shared/categories";
@@ -46,6 +46,7 @@ export default function PartnerFormPage() {
   const [files, setFiles] = useState<FileRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
+  const thumbInputRef = useRef<HTMLInputElement | null>(null);
 
   async function loadDetail(partnerId: string) {
     const data = await api.get<{ partner: Partner; agreements: Agreement[]; medical: Medical | null; images: ImageRow[]; files: FileRow[] }>(
@@ -125,6 +126,28 @@ export default function PartnerFormPage() {
     loadDetail(id);
   }
 
+  // 협약기관 관리 목록 화면과 동일하게, 대표이미지 썸네일을 우클릭 → 붙여넣기(Ctrl+V)로도 등록할 수 있게 한다.
+  function handleThumbPaste(e: React.ClipboardEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          handleUploadImages(dt.files);
+        }
+        return;
+      }
+    }
+    alert("클립보드에 복사된 이미지가 없습니다. 이미지를 먼저 복사(Ctrl+C)해주세요.");
+  }
+  function blockTypingExceptShortcuts(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (!e.ctrlKey && !e.metaKey) e.preventDefault();
+  }
+
   async function handleUploadAgreementFile(fileList: FileList | null) {
     if (!id || !fileList || fileList.length === 0) return;
     const fd = new FormData();
@@ -135,9 +158,39 @@ export default function PartnerFormPage() {
 
   if (!isNew && !partner) return <p className="text-slate-400">불러오는 중...</p>;
 
+  const representativeImage = images.find((img) => img.is_main) ?? images[0] ?? null;
+
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">{isNew ? "협약기관 추가" : partner?.name}</h1>
+      <div className="flex items-center gap-3 mb-1">
+        {!isNew && (
+          <>
+            <input ref={thumbInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
+              onChange={(e) => { handleUploadImages(e.target.files); e.target.value = ""; }} />
+            <div
+              role="button"
+              tabIndex={0}
+              contentEditable
+              suppressContentEditableWarning
+              onClick={() => thumbInputRef.current?.click()}
+              onKeyDown={(e) => {
+                blockTypingExceptShortcuts(e);
+                if (e.key === "Enter" || e.key === " ") thumbInputRef.current?.click();
+              }}
+              onPaste={handleThumbPaste}
+              title="클릭하면 파일 선택, 우클릭 후 붙여넣기(Ctrl+V)로 복사한 이미지를 바로 등록할 수 있습니다."
+              className="w-14 h-14 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 cursor-pointer outline-none focus:ring-2 focus:ring-brand-400"
+            >
+              {representativeImage ? (
+                <img src={`/api/files/image/${representativeImage.id}`} alt="" className="w-full h-full object-cover pointer-events-none" />
+              ) : (
+                <span className="text-[10px] text-slate-400 leading-tight text-center select-none">이미지<br />없음</span>
+              )}
+            </div>
+          </>
+        )}
+        <h1 className="text-2xl font-bold text-slate-900">{isNew ? "협약기관 추가" : partner?.name}</h1>
+      </div>
       {!isNew && <p className="text-sm text-slate-500 mb-6">기본정보/협약정보/의료정보/이미지/협약서를 각 섹션별로 저장합니다.</p>}
       {savedMsg && <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">{savedMsg}</p>}
 
