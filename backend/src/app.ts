@@ -32,7 +32,23 @@ export function createApp() {
   const app = express();
 
   app.set("trust proxy", 1);
-  app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+  // helmet 기본 CSP(script-src 'self')는 NAVER Maps 외부 스크립트/타일 로딩을 막는다
+  // (2026-08-14 실제 발견 — 지도가 "지도를 불러오지 못했습니다"로만 뜨고 콘솔에 CSP 위반 오류).
+  // NAVER 지도 관련 도메인만 명시적으로 허용한다.
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      contentSecurityPolicy: {
+        directives: {
+          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+          "script-src": ["'self'", "https://oapi.map.naver.com", "https://openapi.map.naver.com"],
+          "connect-src": ["'self'", "https://*.naver.com", "https://*.pstatic.net"],
+          "img-src": ["'self'", "data:", "https://*.naver.com", "https://*.naver.net", "https://*.pstatic.net"],
+          "style-src": ["'self'", "'unsafe-inline'"],
+        },
+      },
+    })
+  );
 
   // 로컬 개발(프론트 :5180 / 백엔드 :4100, 서로 다른 오리진)에서만 CORS가 필요하다.
   // 운영 환경은 백엔드가 프론트 정적 빌드를 함께 서빙해 동일 출처이므로 CORS 자체를 켜지 않는다.
