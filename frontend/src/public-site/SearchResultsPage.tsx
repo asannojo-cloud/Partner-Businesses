@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../shared/api";
 import { CATEGORIES } from "../shared/categories";
@@ -34,6 +34,7 @@ export default function SearchResultsPage() {
 
   const [qDraft, setQDraft] = useState(q);
   useEffect(() => setQDraft(q), [q]);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
 
   async function load(nextPage: number, append: boolean) {
     setLoading(true);
@@ -127,7 +128,7 @@ export default function SearchResultsPage() {
         </div>
       </form>
 
-      <details className="mb-4 bg-white rounded-2xl border border-slate-200 open:pb-3" open={Boolean(categoryDef)}>
+      <details ref={detailsRef} className="mb-4 bg-white rounded-2xl border border-slate-200 open:pb-3" open={Boolean(categoryDef)}>
         <summary className="px-4 py-3 text-sm font-medium text-slate-700 cursor-pointer select-none">
           🔎 상세검색 — 분류로 찾기{categoryDef ? ` (${categoryDef.label}${subCategory ? ` / ${subCategory}` : ""})` : ""}
         </summary>
@@ -148,7 +149,7 @@ export default function SearchResultsPage() {
           {categoryDef && (
             <>
               <p className="text-xs text-slate-400 mb-2">세부분류 선택</p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 mb-3">
                 <button onClick={() => setFilter("subCategory", null)} className={`text-xs px-2.5 py-1 rounded-full border ${!subCategory ? "bg-brand-700 text-white border-brand-700" : "bg-white border-slate-300 text-slate-600"}`}>전체</button>
                 {categoryDef.subCategories.map((s) => (
                   <button key={s} onClick={() => setFilter("subCategory", s)} className={`text-xs px-2.5 py-1 rounded-full border ${subCategory === s ? "bg-brand-700 text-white border-brand-700" : "bg-white border-slate-300 text-slate-600"}`}>{s}</button>
@@ -156,6 +157,15 @@ export default function SearchResultsPage() {
               </div>
             </>
           )}
+
+          <div className="flex justify-end">
+            <button
+              onClick={() => { if (detailsRef.current) detailsRef.current.open = false; }}
+              className="rounded-lg bg-brand-900 text-white text-xs font-medium px-4 py-1.5"
+            >
+              검색
+            </button>
+          </div>
         </div>
       </details>
 
