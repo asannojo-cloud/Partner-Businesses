@@ -41,8 +41,11 @@ export function createApp() {
       contentSecurityPolicy: {
         directives: {
           ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-          "script-src": ["'self'", "https://oapi.map.naver.com", "https://openapi.map.naver.com"],
-          "connect-src": ["'self'", "https://*.naver.com", "https://*.pstatic.net"],
+          // NAVER Maps SDK는 스타일 정의(JSON)를 <script> 태그로 동적 로딩하므로 pstatic.net도
+          // script-src에 있어야 한다 (2026-08-14 — connect-src만 열었더니 지도 스타일 로딩이 계속 막힘).
+          // 로깅용 nelo.navercorp.com 등 *.navercorp.com도 connect-src에 필요.
+          "script-src": ["'self'", "https://oapi.map.naver.com", "https://openapi.map.naver.com", "https://*.pstatic.net"],
+          "connect-src": ["'self'", "https://*.naver.com", "https://*.pstatic.net", "https://*.navercorp.com"],
           "img-src": ["'self'", "data:", "https://*.naver.com", "https://*.naver.net", "https://*.pstatic.net"],
           "style-src": ["'self'", "'unsafe-inline'"],
         },
