@@ -102,13 +102,23 @@ export default function PartnerDetailPage() {
           </a>
         )}
 
+        {partner.website && (
+          <a href={partner.website} target="_blank" rel="noreferrer"
+            className="block text-center rounded-xl border border-slate-300 py-2.5 text-sm font-medium text-slate-700 mb-4">
+            🌐 홈페이지 방문하기
+          </a>
+        )}
+
+        {/* 협약기간은 협약 주요내용 유무와 무관하게 항상 표시한다 (2026-08-14 — 레거시 자료 import분은
+            협약 주요내용이 비어있는 경우가 많아, 이전에는 이 조건에 묶여 협약기간도 함께 안 보였다). */}
+        {(agreement?.start_date || agreement?.end_date) && (
+          <p className="text-xs text-slate-400 mb-4">📅 협약기간: {agreementPeriodLabel(agreement!.start_date, agreement!.end_date)}</p>
+        )}
+
         {agreement?.main_content && (
           <section className="mb-4">
             <h2 className="font-bold text-slate-900 mb-1">협약 주요내용</h2>
             <p className="text-sm text-slate-600 whitespace-pre-wrap">{agreement.main_content}</p>
-            {(agreement.start_date || agreement.end_date) && (
-              <p className="text-xs text-slate-400 mt-1">협약기간: {agreementPeriodLabel(agreement.start_date, agreement.end_date)}</p>
-            )}
           </section>
         )}
 
@@ -158,11 +168,12 @@ export default function PartnerDetailPage() {
           협약 혜택 이용 시 아산시공무원노동조합 <b>모바일회원증</b>을 제시해주세요. (본 서비스는 모바일회원증 앱과 별도로 운영됩니다.)
         </div>
 
-        {partner.website && (
-          <a href={partner.website} target="_blank" rel="noreferrer" className="block text-center mt-4 text-sm text-brand-700 underline">
-            홈페이지 방문하기
-          </a>
-        )}
+        <p className="mt-4 text-[11px] leading-relaxed text-slate-400">
+          ※ 제휴협약에 따른 혜택내용은 일부 변경될 수 있으니, 혜택내용을 미리 확인 후 이용해주시면 감사하겠습니다.
+          (변경 또는 최신 내용은 새올 '아공노조' 게시판 및 각 업체에 문의) 기타 제휴협약과 관련한 문의사항은
+          노조사무실(2667)로 연락주시기 바랍니다.
+        </p>
+
         <Link to="/" className="block text-center mt-4 text-sm text-slate-400">홈으로</Link>
       </div>
     </div>
