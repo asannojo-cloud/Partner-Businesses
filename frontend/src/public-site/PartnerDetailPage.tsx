@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../shared/api";
-import { categoryLabel, telHref, naverDirectionsUrl, agreementPeriodLabel } from "../shared/formatters";
+import { categoryLabel, telHref, naverDirectionsUrl, agreementPeriodLabel, formatDate } from "../shared/formatters";
 import MapView from "../shared/MapView";
 import { useFavorites } from "../shared/useFavorites";
 
 interface Detail {
   partner: {
-    id: number; name: string; category: string; sub_category: string; phone: string | null;
-    website: string | null; address: string; latitude: number | null; longitude: number | null;
+    id: number; name: string; category: string; sub_category: string; representative_name: string | null;
+    phone: string | null; website: string | null; address: string; latitude: number | null; longitude: number | null;
     description: string | null;
   };
   agreement: {
-    main_content: string | null; member_benefit: string | null; family_benefit: string | null;
+    agreement_date: string | null; main_content: string | null; member_benefit: string | null; family_benefit: string | null;
     usage_condition: string | null; notice: string | null; start_date: string | null; end_date: string | null;
   } | null;
   medical: {
@@ -71,10 +71,23 @@ export default function PartnerDetailPage() {
         <p className="text-xs text-slate-400 mb-1">{categoryLabel(partner.category)} / {partner.sub_category}</p>
         <h1 className="text-xl font-bold text-slate-900 mb-4">{partner.name}</h1>
 
-        {agreement?.main_content && (
+        {(partner.representative_name || partner.website || partner.phone || agreement?.agreement_date) && (
           <section className="bg-brand-50 border border-brand-200 rounded-2xl p-5 mb-4">
-            <p className="font-bold text-brand-900 mb-1">협약내용</p>
-            <p className="text-sm text-brand-800 whitespace-pre-wrap leading-relaxed">{agreement.main_content}</p>
+            <p className="font-bold text-brand-900 mb-2">협약기관</p>
+            <dl className="text-sm text-brand-800 space-y-1">
+              {partner.representative_name && (
+                <div className="flex gap-2"><dt className="shrink-0 text-brand-600">대표자</dt><dd>{partner.representative_name}</dd></div>
+              )}
+              {partner.website && (
+                <div className="flex gap-2"><dt className="shrink-0 text-brand-600">홈페이지</dt><dd className="truncate">{partner.website}</dd></div>
+              )}
+              {partner.phone && (
+                <div className="flex gap-2"><dt className="shrink-0 text-brand-600">전화번호</dt><dd>{partner.phone}</dd></div>
+              )}
+              {agreement?.agreement_date && (
+                <div className="flex gap-2"><dt className="shrink-0 text-brand-600">협약일</dt><dd>{formatDate(agreement.agreement_date)}</dd></div>
+              )}
+            </dl>
           </section>
         )}
 

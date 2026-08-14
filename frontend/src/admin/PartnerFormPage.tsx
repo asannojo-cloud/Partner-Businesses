@@ -5,10 +5,10 @@ import { CATEGORIES } from "../shared/categories";
 import MapView from "../shared/MapView";
 
 interface Partner {
-  id: number; name: string; category: string; sub_category: string; phone: string | null;
-  website: string | null; address: string; detail_address: string | null; postal_code: string | null;
-  description: string | null; latitude: number | null; longitude: number | null; geocode_status: string;
-  status: string;
+  id: number; name: string; category: string; sub_category: string; representative_name: string | null;
+  phone: string | null; website: string | null; address: string; detail_address: string | null;
+  postal_code: string | null; description: string | null; latitude: number | null; longitude: number | null;
+  geocode_status: string; status: string;
 }
 interface Agreement {
   id: number; agreement_date: string | null; start_date: string | null; end_date: string | null;
@@ -25,8 +25,8 @@ interface ImageRow { id: number; file_path: string; is_main: boolean; }
 interface FileRow { id: number; file_name: string; file_type: string; is_public: boolean; agreement_signed_date: string | null; }
 
 const emptyPartner = {
-  name: "", category: "medical", subCategory: CATEGORIES[0].subCategories[0], phone: "", website: "",
-  address: "", detailAddress: "", postalCode: "", description: "",
+  name: "", category: "medical", subCategory: CATEGORIES[0].subCategories[0], representativeName: "",
+  phone: "", website: "", address: "", detailAddress: "", postalCode: "", description: "",
 };
 
 export default function PartnerFormPage() {
@@ -54,6 +54,7 @@ export default function PartnerFormPage() {
     setPartner(data.partner);
     setForm({
       name: data.partner.name, category: data.partner.category, subCategory: data.partner.sub_category,
+      representativeName: data.partner.representative_name ?? "",
       phone: data.partner.phone ?? "", website: data.partner.website ?? "", address: data.partner.address,
       detailAddress: data.partner.detail_address ?? "", postalCode: data.partner.postal_code ?? "",
       description: data.partner.description ?? "",
@@ -167,15 +168,20 @@ export default function PartnerFormPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
+              <label className="block text-sm text-slate-600 mb-1">대표자명</label>
+              <input value={form.representativeName} onChange={(e) => setForm({ ...form, representativeName: e.target.value })}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            </div>
+            <div>
               <label className="block text-sm text-slate-600 mb-1">대표전화</label>
               <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="041-000-0000" />
             </div>
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">홈페이지</label>
-              <input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            </div>
+          </div>
+          <div>
+            <label className="block text-sm text-slate-600 mb-1">홈페이지</label>
+            <input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
           </div>
           <div>
             <label className="block text-sm text-slate-600 mb-1">주소 *</label>

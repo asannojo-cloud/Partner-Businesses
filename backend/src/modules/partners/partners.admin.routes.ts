@@ -13,6 +13,7 @@ const partnerInputSchema = z.object({
   name: z.string().min(1, "기관명을 입력해주세요."),
   category: z.string().min(1),
   subCategory: z.string().min(1),
+  representativeName: z.string().optional(),
   phone: z.string().optional(),
   website: z.string().optional(),
   address: z.string().min(1, "주소를 입력해주세요."),
@@ -101,14 +102,14 @@ adminPartnersRouter.post("/", async (req, res) => {
   const geo = await geocodeAddress(input.address);
 
   const { rows } = await pool.query(
-    `INSERT INTO partners (name, category, sub_category, phone, website, address, detail_address, postal_code,
-       latitude, longitude, geocode_status, description, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'active')
+    `INSERT INTO partners (name, category, sub_category, representative_name, phone, website, address, detail_address,
+       postal_code, latitude, longitude, geocode_status, description, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'active')
      RETURNING *`,
     [
-      input.name, input.category, input.subCategory, input.phone ?? null, input.website ?? null, input.address,
-      input.detailAddress ?? null, input.postalCode ?? null, geo.latitude, geo.longitude, geo.status,
-      input.description ?? null,
+      input.name, input.category, input.subCategory, input.representativeName ?? null, input.phone ?? null,
+      input.website ?? null, input.address, input.detailAddress ?? null, input.postalCode ?? null,
+      geo.latitude, geo.longitude, geo.status, input.description ?? null,
     ]
   );
   res.status(201).json({ partner: rows[0], geocode: geo });
@@ -133,17 +134,18 @@ adminPartnersRouter.put("/:id", async (req, res) => {
 
   const { rows } = await pool.query(
     `UPDATE partners SET
-       name=$1, category=$2, sub_category=$3, phone=$4, website=$5, address=$6, detail_address=$7,
-       postal_code=$8, description=$9, updated_at=now()
-       ${geo ? ", latitude=$10, longitude=$11, geocode_status=$12" : ""}
-     WHERE id = ${geo ? "$13" : "$10"}
+       name=$1, category=$2, sub_category=$3, representative_name=$4, phone=$5, website=$6, address=$7,
+       detail_address=$8, postal_code=$9, description=$10, updated_at=now()
+       ${geo ? ", latitude=$11, longitude=$12, geocode_status=$13" : ""}
+     WHERE id = ${geo ? "$14" : "$11"}
      RETURNING *`,
     geo
-      ? [input.name, input.category, input.subCategory, input.phone ?? null, input.website ?? null, input.address,
-         input.detailAddress ?? null, input.postalCode ?? null, input.description ?? null,
-         geo.latitude, geo.longitude, geo.status, id]
-      : [input.name, input.category, input.subCategory, input.phone ?? null, input.website ?? null, input.address,
-         input.detailAddress ?? null, input.postalCode ?? null, input.description ?? null, id]
+      ? [input.name, input.category, input.subCategory, input.representativeName ?? null, input.phone ?? null,
+         input.website ?? null, input.address, input.detailAddress ?? null, input.postalCode ?? null,
+         input.description ?? null, geo.latitude, geo.longitude, geo.status, id]
+      : [input.name, input.category, input.subCategory, input.representativeName ?? null, input.phone ?? null,
+         input.website ?? null, input.address, input.detailAddress ?? null, input.postalCode ?? null,
+         input.description ?? null, id]
   );
   res.json({ partner: rows[0], geocode: geo });
 });

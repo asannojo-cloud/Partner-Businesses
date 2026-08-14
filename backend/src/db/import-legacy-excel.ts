@@ -246,9 +246,9 @@ async function importFile(filePath: string) {
 
     const geo = await geocodeAddress(row.address);
     const { rows: partnerRows } = await pool.query(
-      `INSERT INTO partners (name, category, sub_category, phone, website, address, latitude, longitude, geocode_status, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'active') RETURNING id`,
-      [row.name, row.category, row.subCategory, row.phone, row.website, row.address, geo.latitude, geo.longitude, geo.status]
+      `INSERT INTO partners (name, category, sub_category, representative_name, phone, website, address, latitude, longitude, geocode_status, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'active') RETURNING id`,
+      [row.name, row.category, row.subCategory, row.representative, row.phone, row.website, row.address, geo.latitude, geo.longitude, geo.status]
     );
     const partnerId = partnerRows[0].id;
 
