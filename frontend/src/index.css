@@ -17,22 +17,30 @@
   --color-brand-900: #123f4a;
 }
 
-html, body, #root {
-  height: 100%;
-}
+/* Tailwind v4는 CSS Cascade Layers를 쓴다 — @layer 밖에 그냥 써진 규칙은 명시성과 무관하게
+   레이어에 속한 유틸리티 클래스보다 항상 우선순위가 높다. 이 때문에 아래 규칙들을 @layer 없이
+   두면 text-white 같은 Tailwind 유틸리티가 전혀 안 먹는 문제가 있었다
+   (2026-08-14 실제 발견 — 어두운 배경 버튼의 흰 글씨가 계속 본문 기본색으로 보임).
+   반드시 @layer base 안에 넣어 Tailwind의 레이어 순서에 맞춰야 유틸리티 클래스가 정상적으로
+   이 값들을 덮어쓴다. */
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
 
-body {
-  margin: 0;
-  /* 부드러운 고딕 계열 폰트를 우선 사용한다. 한컴윤고딕체/이순신돋움체는 상용 라이선스 폰트라
-     파일을 앱에 직접 포함하지 않았다 — 사용자의 OS/오피스에 해당 폰트가 설치되어 있으면
-     자동으로 적용되고, 없으면 무료 폰트로 자연스럽게 대체된다. */
-  font-family: "HCR Dotum", "이순신돋움체", "한컴윤고딕체 460", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  background-color: #f3f4f6;
-  color: #111827;
-  -webkit-tap-highlight-color: transparent;
-}
+  body {
+    margin: 0;
+    /* 부드러운 고딕 계열 폰트를 우선 사용한다. 한컴윤고딕체/이순신돋움체는 상용 라이선스 폰트라
+       파일을 앱에 직접 포함하지 않았다 — 사용자의 OS/오피스에 해당 폰트가 설치되어 있으면
+       자동으로 적용되고, 없으면 무료 폰트로 자연스럽게 대체된다. */
+    font-family: "HCR Dotum", "이순신돋움체", "한컴윤고딕체 460", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background-color: #f3f4f6;
+    color: #111827;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
