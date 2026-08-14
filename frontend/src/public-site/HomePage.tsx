@@ -43,12 +43,12 @@ export default function HomePage() {
       </form>
 
       <button
-        onClick={() => navigate("/search?healthCheck=true")}
+        onClick={() => navigate("/search")}
         className="w-full mb-6 rounded-2xl bg-brand-900 text-white px-5 py-4 text-left flex items-center justify-between"
       >
         <span>
-          <span className="block font-bold">🩺 건강검진 가능 기관 찾기</span>
-          <span className="block text-xs text-brand-200 mt-0.5">조합원 건강검진 협약병원을 바로 확인하세요</span>
+          <span className="block font-bold">🔎 상세검색</span>
+          <span className="block text-xs text-brand-200 mt-0.5">내가 가고자하는 협약기관을 바로 확인하세요</span>
         </span>
         <span className="text-xl">›</span>
       </button>
