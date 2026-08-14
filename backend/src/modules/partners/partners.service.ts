@@ -202,3 +202,26 @@ export async function getTopViewedPartners(limit: number) {
   );
   return rows.filter((r) => computeAgreementStatus(r.end_date, r.auto_renewal) !== "ended").slice(0, limit);
 }
+
+/** 공개 화면 상단에 보여줄 전체 협약기관 수 + 대분류별 소계 (협약 종료된 기관은 제외). */
+export async function getPublicPartnerStats() {
+  const { rows } = await pool.query(
+    `SELECT p.category, a.end_date, a.auto_renewal
+     FROM partners p
+     LEFT JOIN LATERAL (
+       SELECT * FROM agreements WHERE partner_id = p.id ORDER BY end_date DESC NULLS LAST, created_at DESC LIMIT 1
+     ) a ON true
+     WHERE p.status = 'active'`
+  );
+  const visible = rows.filter((r) => computeAgreementStatus(r.end_date, r.auto_renewal) !== "ended");
+
+  const byCategory = new Map<string, number>();
+  for (const r of visible) {
+    byCategory.set(r.category, (byCategory.get(r.category) ?? 0) + 1);
+  }
+
+  return {
+    total: visible.length,
+    byCategory: [...byCategory.entries()].map(([category, count]) => ({ category, count })),
+  };
+}

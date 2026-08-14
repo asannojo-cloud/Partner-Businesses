@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { listPublicPartners, getPublicPartnerDetail, getTopViewedPartners } from "./partners.service";
+import { listPublicPartners, getPublicPartnerDetail, getTopViewedPartners, getPublicPartnerStats } from "./partners.service";
 
 export const publicPartnersRouter = Router();
 
@@ -27,11 +27,15 @@ publicPartnersRouter.get("/", async (req, res) => {
   res.json(result);
 });
 
-// "/:id"보다 먼저 등록해야 한다 — 그렇지 않으면 "top"이 :id로 잡혀 400 오류가 난다.
+// "/:id"보다 먼저 등록해야 한다 — 그렇지 않으면 "top"/"stats"가 :id로 잡혀 400 오류가 난다.
 publicPartnersRouter.get("/top", async (req, res) => {
   const limit = Math.min(20, Math.max(1, Number(req.query.limit) || 10));
   const items = await getTopViewedPartners(limit);
   res.json({ items });
+});
+
+publicPartnersRouter.get("/stats", async (req, res) => {
+  res.json(await getPublicPartnerStats());
 });
 
 publicPartnersRouter.get("/:id", async (req, res) => {
