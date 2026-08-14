@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { api } from "../shared/api";
 import { CATEGORIES } from "../shared/categories";
@@ -26,6 +26,9 @@ export default function SearchResultsPage() {
   const sort = searchParams.get("sort") ?? "name";
 
   const categoryDef = categoryParam ? CATEGORIES.find((c) => c.code === categoryParam) : null;
+
+  const [qDraft, setQDraft] = useState(q);
+  useEffect(() => setQDraft(q), [q]);
 
   async function load(nextPage: number, append: boolean) {
     setLoading(true);
@@ -60,8 +63,36 @@ export default function SearchResultsPage() {
     setSearchParams(next);
   }
 
+  function handleSearchSubmit(e: FormEvent) {
+    e.preventDefault();
+    setFilter("q", qDraft.trim() || null);
+  }
+
   return (
     <div className="p-4">
+      <form onSubmit={handleSearchSubmit} className="mb-4">
+        <div className="flex items-center bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-sm">
+          <span className="mr-2">🔍</span>
+          <input
+            value={qDraft}
+            onChange={(e) => setQDraft(e.target.value)}
+            placeholder="기관명, 지역, 혜택을 검색하세요"
+            className="flex-1 outline-none text-sm"
+          />
+          {qDraft && (
+            <button
+              type="button"
+              onClick={() => { setQDraft(""); setFilter("q", null); }}
+              aria-label="검색어 지우기"
+              className="text-slate-400 px-1"
+            >
+              ✕
+            </button>
+          )}
+          <button type="submit" className="ml-1 rounded-lg bg-brand-900 text-white text-xs font-medium px-3 py-1.5">검색</button>
+        </div>
+      </form>
+
       <h1 className="text-lg font-bold text-slate-900 mb-3">
         {categoryDef ? categoryDef.label : q ? `"${q}" 검색결과` : "전체 협약기관"}
       </h1>
