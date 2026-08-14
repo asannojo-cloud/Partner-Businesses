@@ -1,15 +1,23 @@
 /**
- * PRD 6절 고정 대분류/세부분류.
- * 프론트엔드 frontend/src/shared/categories.ts 와 반드시 동일하게 유지한다 (공유 패키지를
- * 두지 않는 대신, 두 파일을 나란히 두고 수정 시 함께 반영하는 방식을 택했다 — 자매 프로젝트와
- * 동일하게 워크스페이스 간 별도 공유 패키지 없이 단순하게 운영).
+ * 대분류/세부분류.
+ * 원래는 PRD 6절 고정 목록을 코드 상수로만 관리했으나 (2026-08-14 이전), 관리자 화면에서
+ * 대분류/세부분류를 추가·삭제할 수 있어야 한다는 요청에 따라 백엔드 DB를 원천으로 옮겼다.
+ *
+ * 기존 여러 화면(홈/검색/기관폼/기관목록 등)이 이 파일의 CATEGORIES 배열을 그대로
+ * import해서 쓰고 있으므로, 하위 호환을 위해 export 이름은 그대로 유지하고 — 배열을
+ * "재할당"하지 않고 내용만 in-place로 교체(splice)한다. main.tsx가 최초 렌더링 전에
+ * loadCategories()를 한 번 await하므로, 이 배열을 읽는 모든 화면은 첫 렌더부터 최신
+ * DB 상태를 보게 된다 (관리자가 카테고리를 추가/삭제한 뒤에는 새로고침하면 반영됨).
  */
+import { api } from "./api";
+
 export interface CategoryDef {
   code: string;
   label: string;
   subCategories: string[];
 }
 
+// DB 로딩 전 기본값 (최초 시딩 당시와 동일한 값 — 네트워크 실패 시에도 화면이 비지 않게 한다).
 export const CATEGORIES: CategoryDef[] = [
   {
     code: "medical",
@@ -70,10 +78,21 @@ export const CATEGORIES: CategoryDef[] = [
   },
 ];
 
-export const CATEGORY_CODES = CATEGORIES.map((c) => c.code);
+/** 서버(/api/categories)에서 최신 목록을 읽어와 CATEGORIES 배열 내용을 교체한다. */
+export async function loadCategories(): Promise<CategoryDef[]> {
+  try {
+    const data = await api.get<{ categories: CategoryDef[] }>("/categories");
+    if (data.categories.length > 0) {
+      CATEGORIES.splice(0, CATEGORIES.length, ...data.categories);
+    }
+  } catch {
+    // 네트워크 오류 등으로 실패하면 기본값을 유지한다.
+  }
+  return CATEGORIES;
+}
 
 export function isValidCategory(code: string): boolean {
-  return CATEGORY_CODES.includes(code);
+  return CATEGORIES.some((c) => c.code === code);
 }
 
 export function isValidSubCategory(categoryCode: string, subCategory: string): boolean {

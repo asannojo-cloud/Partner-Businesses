@@ -25,6 +25,7 @@ import { adminExcelRouter } from "./modules/excel/excel.routes";
 import { adminDuplicatesRouter } from "./modules/duplicates/duplicates.routes";
 import { adminDashboardRouter } from "./modules/dashboard/dashboard.routes";
 import { publicCategoriesRouter } from "./modules/partners/categories.routes";
+import { adminCategoriesRouter } from "./modules/partners/categories.admin.routes";
 
 const PgSession = connectPgSimple(session);
 
@@ -97,6 +98,7 @@ export function createApp() {
   app.use("/api/admin/excel", adminExcelRouter);
   app.use("/api/admin/duplicates", adminDuplicatesRouter);
   app.use("/api/admin/dashboard", adminDashboardRouter);
+  app.use("/api/admin/categories", adminCategoriesRouter);
 
   app.use("/api", notFoundHandler);
 

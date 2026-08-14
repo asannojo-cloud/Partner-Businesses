@@ -80,11 +80,7 @@ export default function PartnersListPage() {
     fileInputRef.current?.click();
   }
 
-  async function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    const partnerId = uploadTargetId.current;
-    e.target.value = "";
-    if (!file || !partnerId) return;
+  async function uploadImageFile(partnerId: number, file: File) {
     setUploadingId(partnerId);
     try {
       const form = new FormData();
@@ -96,6 +92,35 @@ export default function PartnersListPage() {
     } finally {
       setUploadingId(null);
     }
+  }
+
+  async function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    const partnerId = uploadTargetId.current;
+    e.target.value = "";
+    if (!file || !partnerId) return;
+    await uploadImageFile(partnerId, file);
+  }
+
+  // 네이버 등에서 이미지를 복사한 뒤, 썸네일을 우클릭 → 붙여넣기(또는 Ctrl+V)로 바로 등록할 수 있게 한다.
+  // 썸네일을 contentEditable로 만들면 브라우저 우클릭 메뉴에 "붙여넣기"가 뜨고 paste 이벤트를 받을 수 있다.
+  function handleThumbPaste(e: React.ClipboardEvent<HTMLDivElement>, partnerId: number) {
+    e.preventDefault();
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) uploadImageFile(partnerId, file);
+        return;
+      }
+    }
+    alert("클립보드에 복사된 이미지가 없습니다. 이미지를 먼저 복사(Ctrl+C)해주세요.");
+  }
+
+  // 붙여넣기 외에 텍스트 타이핑으로 썸네일 내용이 바뀌는 것을 막는다 (Ctrl/Cmd 조합키는 허용).
+  function blockTypingExceptShortcuts(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (!e.ctrlKey && !e.metaKey) e.preventDefault();
   }
 
   return (
@@ -179,20 +204,29 @@ export default function PartnersListPage() {
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
+                    <div
+                      key={p.representative_image_id ?? "empty"}
+                      role="button"
+                      tabIndex={0}
+                      contentEditable
+                      suppressContentEditableWarning
                       onClick={() => openUploadFor(p.id)}
-                      title="클릭하여 사진 업로드"
-                      className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0"
+                      onKeyDown={(e) => {
+                        blockTypingExceptShortcuts(e);
+                        if (e.key === "Enter" || e.key === " ") openUploadFor(p.id);
+                      }}
+                      onPaste={(e) => handleThumbPaste(e, p.id)}
+                      title="클릭하면 파일 선택, 우클릭 후 붙여넣기(Ctrl+V)로 복사한 이미지를 바로 등록할 수 있습니다."
+                      className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 cursor-pointer outline-none focus:ring-2 focus:ring-brand-400"
                     >
                       {uploadingId === p.id ? (
-                        <span className="text-[10px] text-slate-400">업로드중</span>
+                        <span className="text-[10px] text-slate-400 select-none">업로드중</span>
                       ) : p.representative_image_id ? (
-                        <img src={fileUrl(`/files/image/${p.representative_image_id}`)} alt={p.name} className="w-full h-full object-cover" />
+                        <img src={fileUrl(`/files/image/${p.representative_image_id}`)} alt={p.name} className="w-full h-full object-cover pointer-events-none" />
                       ) : (
-                        <span className="text-[10px] text-slate-400 leading-tight text-center">이미지<br />없음</span>
+                        <span className="text-[10px] text-slate-400 leading-tight text-center select-none">이미지<br />없음</span>
                       )}
-                    </button>
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <Link to={`/admin/partners/${p.id}`} className="text-brand-700 hover:underline font-medium">{p.name}</Link>

@@ -1,9 +1,22 @@
 /**
- * PRD 6절 고정 대분류/세부분류.
- * 프론트엔드 frontend/src/shared/categories.ts 와 반드시 동일하게 유지한다 (공유 패키지를
- * 두지 않는 대신, 두 파일을 나란히 두고 수정 시 함께 반영하는 방식을 택했다 — 자매 프로젝트와
- * 동일하게 워크스페이스 간 별도 공유 패키지 없이 단순하게 운영).
+ * 대분류/세부분류.
+ * 원래는 PRD 6절 고정 목록을 코드 상수로만 관리했으나 (2026-08-14 이전),
+ * 관리자 화면에서 대분류/세부분류를 추가·삭제할 수 있어야 한다는 요청에 따라
+ * DB(categories/subcategories 테이블)를 원천으로 옮겼다.
+ *
+ * 기존 코드 곳곳(dashboard, AI 분석, 엑셀 가져오기, 기관 검증 등)이 이 파일의
+ * CATEGORIES 배열/함수를 그대로 import해서 쓰고 있으므로, 하위 호환을 위해
+ * export 이름/타입은 그대로 유지하고 — 대신 CATEGORIES 배열을 "재할당"하지 않고
+ * 내용만 in-place로 교체(splice)하는 방식을 쓴다. 이렇게 하면 이 배열을 이미
+ * import해서 들고 있는 다른 모듈들도 같은 배열 객체를 참조하므로 별도 수정 없이
+ * 최신 DB 상태를 그대로 보게 된다.
+ *
+ * 서버 시작 시 loadCategoriesFromDb()를 한 번 호출해 채우고, 관리자가 카테고리를
+ * 추가/삭제할 때마다 다시 호출해 갱신한다 (categories.service.ts).
+ * DB 조회 전(또는 실패 시)에는 최초 시딩 당시와 동일한 값을 기본값으로 둔다.
  */
+import { pool } from "../db/pool";
+
 export interface CategoryDef {
   code: string;
   label: string;
@@ -70,10 +83,25 @@ export const CATEGORIES: CategoryDef[] = [
   },
 ];
 
-export const CATEGORY_CODES = CATEGORIES.map((c) => c.code);
+/** DB(categories/subcategories)에서 최신 목록을 읽어와 CATEGORIES 배열 내용을 교체한다. */
+export async function loadCategoriesFromDb(): Promise<void> {
+  const { rows: cats } = await pool.query(
+    `SELECT id, code, label FROM categories ORDER BY sort_order, id`
+  );
+  const { rows: subs } = await pool.query(
+    `SELECT id, category_id, name FROM subcategories ORDER BY sort_order, id`
+  );
+  const next: CategoryDef[] = cats.map((c) => ({
+    code: c.code,
+    label: c.label,
+    subCategories: subs.filter((s) => s.category_id === c.id).map((s) => s.name),
+  }));
+  if (next.length === 0) return; // DB가 아직 시딩 전이면 기본값을 유지한다 (빈 목록으로 덮어쓰지 않음).
+  CATEGORIES.splice(0, CATEGORIES.length, ...next);
+}
 
 export function isValidCategory(code: string): boolean {
-  return CATEGORY_CODES.includes(code);
+  return CATEGORIES.some((c) => c.code === code);
 }
 
 export function isValidSubCategory(categoryCode: string, subCategory: string): boolean {

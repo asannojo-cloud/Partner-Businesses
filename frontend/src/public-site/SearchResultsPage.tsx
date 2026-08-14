@@ -128,7 +128,7 @@ export default function SearchResultsPage() {
         </div>
       </form>
 
-      <details ref={detailsRef} className="mb-4 bg-white rounded-2xl border border-slate-200 open:pb-3" open={Boolean(categoryDef)}>
+      <details ref={detailsRef} className="mb-4 bg-white rounded-2xl border border-slate-200 open:pb-3" open>
         <summary className="px-4 py-3 text-sm font-medium text-slate-700 cursor-pointer select-none">
           🔎 상세검색 — 분류로 찾기{categoryDef ? ` (${categoryDef.label}${subCategory ? ` / ${subCategory}` : ""})` : ""}
         </summary>
