@@ -80,7 +80,7 @@ export async function listPublicPartners(filters: PublicPartnerFilters) {
       p.id, p.name, p.category, p.sub_category, p.phone, p.address, p.latitude, p.longitude,
       p.description, p.health_check_available, p.member_discount, p.family_available,
       p.representative_image_id,
-      a.member_benefit, a.family_benefit, a.end_date, a.start_date,
+      a.member_benefit, a.family_benefit, a.end_date, a.start_date, a.auto_renewal,
       m.medical_type
     FROM partners p
     LEFT JOIN LATERAL (
@@ -93,7 +93,7 @@ export async function listPublicPartners(filters: PublicPartnerFilters) {
   `;
 
   const { rows } = await pool.query(sql, params);
-  const visible = rows.filter((r) => computeAgreementStatus(r.end_date) !== "ended");
+  const visible = rows.filter((r) => computeAgreementStatus(r.end_date, r.auto_renewal) !== "ended");
 
   // count는 별도 쿼리 (limit/offset 이전 조건까지만 재사용)
   const countParams = params.slice(0, params.length - 2);
@@ -156,7 +156,7 @@ export async function getPublicPartnerDetail(id: number) {
     [id]
   );
   const agreement = agreementRows[0] ?? null;
-  if (agreement && computeAgreementStatus(agreement.end_date) === "ended") return null;
+  if (agreement && computeAgreementStatus(agreement.end_date, agreement.auto_renewal) === "ended") return null;
 
   const { rows: medicalRows } = await pool.query(`SELECT * FROM medical_info WHERE partner_id = $1`, [id]);
   const { rows: images } = await pool.query(
@@ -180,7 +180,7 @@ export async function getPublicPartnerDetail(id: number) {
     medical: medicalRows[0] ?? null,
     images,
     files,
-    agreementEffectiveStatus: agreement ? computeAgreementStatus(agreement.end_date) : "active",
+    agreementEffectiveStatus: agreement ? computeAgreementStatus(agreement.end_date, agreement.auto_renewal) : "active",
   };
 }
 
@@ -190,7 +190,7 @@ export async function getTopViewedPartners(limit: number) {
     `SELECT
        p.id, p.name, p.category, p.sub_category, p.address, p.view_count,
        p.representative_image_id, p.health_check_available, p.member_discount, p.family_available,
-       a.member_benefit, a.family_benefit, a.end_date
+       a.member_benefit, a.family_benefit, a.end_date, a.auto_renewal
      FROM partners p
      LEFT JOIN LATERAL (
        SELECT * FROM agreements WHERE partner_id = p.id ORDER BY end_date DESC NULLS LAST, created_at DESC LIMIT 1
@@ -200,5 +200,5 @@ export async function getTopViewedPartners(limit: number) {
      LIMIT $1`,
     [limit * 2] // 종료 협약 필터링으로 줄어들 수 있어 여유 있게 가져온다
   );
-  return rows.filter((r) => computeAgreementStatus(r.end_date) !== "ended").slice(0, limit);
+  return rows.filter((r) => computeAgreementStatus(r.end_date, r.auto_renewal) !== "ended").slice(0, limit);
 }

@@ -81,7 +81,7 @@ export default function PartnerDetailPage() {
 
         {(partner.representative_name || partner.website || partner.phone || agreement?.agreement_date) && (
           <section className="bg-brand-50 border border-brand-200 rounded-2xl p-5 mb-4">
-            <p className="font-bold text-brand-900 mb-2">협약기관</p>
+            <p className="font-bold text-brand-900 mb-2">기관소개</p>
             <dl className="text-sm text-brand-800 space-y-1">
               {partner.representative_name && (
                 <div className="flex gap-2"><dt className="shrink-0 text-brand-600">대표자</dt><dd>{partner.representative_name}</dd></div>
@@ -108,8 +108,7 @@ export default function PartnerDetailPage() {
         )}
 
         <section className="mb-4">
-          <p className="text-sm text-slate-700">📍 {partner.address}</p>
-          <div className="mt-2">
+          <div>
             <MapView
               markers={[{ id: partner.id, lat: partner.latitude, lng: partner.longitude, title: partner.name }]}
               fallbackAddress={partner.address}
@@ -130,6 +129,8 @@ export default function PartnerDetailPage() {
           </a>
         )}
 
+        <p className="text-sm text-slate-700 mb-4">📍 {partner.address}</p>
+
         {partner.website && (
           <a href={partner.website} target="_blank" rel="noreferrer"
             className="block text-center rounded-xl border border-slate-300 py-2.5 text-sm font-medium text-slate-700 mb-4">
@@ -147,7 +148,6 @@ export default function PartnerDetailPage() {
           <section className="mb-4">
             <h2 className="font-bold text-slate-900 mb-1">이용조건</h2>
             <p className="text-sm text-slate-600">{agreement.usage_condition}</p>
-            {agreement.notice && <p className="text-xs text-slate-400 mt-1">유의사항: {agreement.notice}</p>}
           </section>
         )}
 

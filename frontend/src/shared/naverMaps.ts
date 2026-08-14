@@ -46,7 +46,10 @@ export function loadNaverMaps(): Promise<any> {
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${NAVER_MAP_CLIENT_ID}`;
+    // NAVER가 2024년에 NCP Maps 인증 파라미터를 ncpClientId → ncpKeyId로 변경했다. 콘솔에서
+    // 발급받은 시점/유형에 따라 어느 쪽을 요구하는지 달라 "인증이 실패하였습니다" 오류가
+    // 간헐적으로 발생했다 (2026-08-14 실제 발견) — 두 파라미터를 함께 보내 어느 쪽이든 인식되게 한다.
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${NAVER_MAP_CLIENT_ID}&ncpKeyId=${NAVER_MAP_CLIENT_ID}`;
     script.async = true;
     script.dataset.naverMaps = "1";
     script.onload = () => waitForMapConstructor().then(resolve, reject);

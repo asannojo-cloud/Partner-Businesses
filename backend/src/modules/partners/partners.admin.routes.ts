@@ -52,7 +52,7 @@ adminPartnersRouter.get("/", async (req, res) => {
   const offsetParam = addParam((page - 1) * pageSize);
 
   const { rows } = await pool.query(
-    `SELECT p.*, a.end_date, a.start_date
+    `SELECT p.*, a.end_date, a.start_date, a.auto_renewal
      FROM partners p
      LEFT JOIN LATERAL (
        SELECT * FROM agreements WHERE partner_id = p.id ORDER BY end_date DESC NULLS LAST, created_at DESC LIMIT 1

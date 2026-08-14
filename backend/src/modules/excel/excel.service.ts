@@ -48,109 +48,44 @@ export function mapCategoryLabelToCode(label: string): string {
   return found?.code ?? label.trim();
 }
 
-const COMPARE_FIELDS: { key: keyof ExcelRowData; label: string }[] = [
-  { key: "address", label: "주소" },
-  { key: "phone", label: "전화번호" },
-  { key: "website", label: "홈페이지" },
-  { key: "mainContent", label: "협약주요내용" },
-  { key: "memberBenefit", label: "조합원혜택" },
-  { key: "familyBenefit", label: "가족혜택" },
-  { key: "startDate", label: "협약시작일" },
-  { key: "endDate", label: "협약종료일" },
-  { key: "usageCondition", label: "이용조건" },
-];
-
-export async function computeDiffForJob(jobId: number, rows: ParsedRow[]) {
-  const matchedPartnerIds = new Set<number>();
-
-  for (const row of rows) {
-    if (row.error) {
-      await pool.query(
-        `INSERT INTO excel_import_rows (import_job_id, row_number, raw_data, diff_type, error_message)
-         VALUES ($1,$2,$3,'error',$4)`,
-        [jobId, row.rowNumber, JSON.stringify(row.data), row.error]
-      );
-      continue;
-    }
-
-    const { rows: matches } = await pool.query(
-      `SELECT p.*, a.address AS a_address, a.phone AS a_phone, a.main_content, a.member_benefit,
-              a.family_benefit, a.start_date, a.end_date, a.usage_condition
-       FROM partners p
-       LEFT JOIN LATERAL (
-         SELECT * FROM agreements WHERE partner_id = p.id ORDER BY end_date DESC NULLS LAST, created_at DESC LIMIT 1
-       ) a ON true
-       WHERE lower(trim(p.name)) = lower(trim($1))
-       LIMIT 1`,
-      [row.data.name]
-    );
-    const existing = matches[0];
-
-    if (!existing) {
-      await pool.query(
-        `INSERT INTO excel_import_rows (import_job_id, row_number, raw_data, diff_type)
-         VALUES ($1,$2,$3,'new')`,
-        [jobId, row.rowNumber, JSON.stringify(row.data)]
-      );
-      continue;
-    }
-
-    matchedPartnerIds.add(existing.id);
-    const excelValues: Record<string, string | undefined> = {
-      address: row.data.address, phone: row.data.phone, website: row.data.website,
-      mainContent: row.data.mainContent, memberBenefit: row.data.memberBenefit,
-      familyBenefit: row.data.familyBenefit, startDate: row.data.startDate, endDate: row.data.endDate,
-      usageCondition: row.data.usageCondition,
-    };
-    const currentValues: Record<string, string | null> = {
-      address: existing.address, phone: existing.phone, website: existing.website,
-      mainContent: existing.main_content, memberBenefit: existing.member_benefit,
-      familyBenefit: existing.family_benefit, startDate: existing.start_date, endDate: existing.end_date,
-      usageCondition: existing.usage_condition,
-    };
-    const changedFields = COMPARE_FIELDS
-      .filter((f) => (excelValues[f.key] ?? "") !== (currentValues[f.key] ?? "") && excelValues[f.key] !== undefined)
-      .map((f) => ({ field: f.label, before: currentValues[f.key], after: excelValues[f.key] }));
-
-    await pool.query(
-      `INSERT INTO excel_import_rows (import_job_id, row_number, raw_data, matched_partner_id, diff_type, diff_fields)
-       VALUES ($1,$2,$3,$4,$5,$6)`,
-      [
-        jobId, row.rowNumber, JSON.stringify(row.data), existing.id,
-        changedFields.length > 0 ? "changed" : "unchanged", JSON.stringify(changedFields),
-      ]
-    );
-  }
-
-  // Excel에 없는 기존 활성 기관은 "협약 종료" 후보로 표시한다 (PRD 26절).
-  const { rows: activePartners } = await pool.query(`SELECT id, name, address FROM partners WHERE status = 'active'`);
-  for (const p of activePartners) {
-    if (matchedPartnerIds.has(p.id)) continue;
-    await pool.query(
-      `INSERT INTO excel_import_rows (import_job_id, row_number, raw_data, matched_partner_id, diff_type)
-       VALUES ($1,0,$2,$3,'ended')`,
-      [jobId, JSON.stringify({ name: p.name, address: p.address }), p.id]
-    );
-  }
+export interface DirectImportResult {
+  totalRows: number;
+  inserted: number;
+  updated: number;
+  skipped: { rowNumber: number; name: string | undefined; error: string }[];
 }
 
-/** 관리자가 체크한 행들만 실제 DB에 반영한다. */
-export async function applyApprovedRows(jobId: number, rowIds: number[], adminId: number) {
-  const { rows } = await pool.query(
-    `SELECT * FROM excel_import_rows WHERE import_job_id = $1 AND id = ANY($2) AND diff_type != 'error'`,
-    [jobId, rowIds]
-  );
+/**
+ * 엑셀을 업로드하면 검토 단계 없이 바로 반영한다 (2026-08-14 — 별도 "Excel 관리"
+ * 검토/승인 화면을 없애고 협약기관 관리 화면에서 업로드 즉시 자동 반영하도록 단순화).
+ * 기관명이 기존 DB와 일치하면 정보를 갱신하고, 없으면 새로 등록한다. 엑셀에 없다고 해서
+ * 기존 기관을 임의로 종료 처리하지는 않는다 (그 부분은 관리자가 목록에서 직접 비활성화).
+ */
+export async function directImportWorkbook(buffer: Buffer, adminId: number): Promise<DirectImportResult> {
+  const parsedRows = parseWorkbook(buffer);
+  const result: DirectImportResult = { totalRows: parsedRows.length, inserted: 0, updated: 0, skipped: [] };
 
-  const results: { rowId: number; ok: boolean; error?: string }[] = [];
-  for (const row of rows) {
+  for (const row of parsedRows) {
+    if (row.error) {
+      result.skipped.push({ rowNumber: row.rowNumber, name: row.data.name, error: row.error });
+      continue;
+    }
+    const data = row.data;
+    const category = mapCategoryLabelToCode(data.category!);
+    const subCategory = data.subCategory!;
+    if (!isValidCategory(category) || !isValidSubCategory(category, subCategory)) {
+      result.skipped.push({ rowNumber: row.rowNumber, name: data.name, error: `분류가 올바르지 않습니다: ${data.category} / ${data.subCategory}` });
+      continue;
+    }
+
     try {
-      const data = row.raw_data as ExcelRowData;
-      if (row.diff_type === "new") {
-        const category = mapCategoryLabelToCode(data.category!);
-        const subCategory = data.subCategory!;
-        if (!isValidCategory(category) || !isValidSubCategory(category, subCategory)) {
-          throw new Error(`분류가 올바르지 않습니다: ${data.category} / ${data.subCategory}`);
-        }
+      const { rows: matches } = await pool.query(
+        `SELECT id, address FROM partners WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1`,
+        [data.name]
+      );
+      const existing = matches[0];
+
+      if (!existing) {
         const geo = await geocodeAddress(data.address!);
         const { rows: partnerRows } = await pool.query(
           `INSERT INTO partners (name, category, sub_category, phone, website, address, latitude, longitude, status, geocode_status)
@@ -173,34 +108,49 @@ export async function applyApprovedRows(jobId: number, rowIds: number[], adminId
           );
         }
         await refreshPartnerCacheFlags(partnerId);
-      } else if (row.diff_type === "changed" && row.matched_partner_id) {
+        result.inserted++;
+      } else {
+        const addressChanged = existing.address !== data.address;
+        const geo = addressChanged ? await geocodeAddress(data.address!) : null;
         await pool.query(
-          `UPDATE partners SET address=$1, phone=$2, website=$3, updated_at=now() WHERE id=$4`,
-          [data.address, data.phone ?? null, data.website ?? null, row.matched_partner_id]
+          `UPDATE partners SET address=$1, phone=$2, website=$3, updated_at=now()
+             ${geo ? ", latitude=$4, longitude=$5, geocode_status=$6" : ""}
+           WHERE id=${geo ? "$7" : "$4"}`,
+          geo
+            ? [data.address, data.phone ?? null, data.website ?? null, geo.latitude, geo.longitude, geo.status, existing.id]
+            : [data.address, data.phone ?? null, data.website ?? null, existing.id]
         );
-        await pool.query(
-          `UPDATE agreements SET main_content=$1, member_benefit=$2, family_benefit=$3, start_date=$4, end_date=$5,
-             usage_condition=$6, updated_at=now()
-           WHERE partner_id=$7`,
-          [data.mainContent ?? null, data.memberBenefit ?? null, data.familyBenefit ?? null,
-           data.startDate || null, data.endDate || null, data.usageCondition ?? null, row.matched_partner_id]
+        const { rows: agreementRows } = await pool.query(
+          `SELECT id FROM agreements WHERE partner_id = $1 ORDER BY end_date DESC NULLS LAST, created_at DESC LIMIT 1`,
+          [existing.id]
         );
-        await refreshPartnerCacheFlags(row.matched_partner_id);
-      } else if (row.diff_type === "ended" && row.matched_partner_id) {
-        // 협약 종료 승인: 최신 협약의 종료일을 어제 날짜로 당겨 즉시 공개화면에서 숨긴다.
-        await pool.query(
-          `UPDATE agreements SET end_date = (current_date - interval '1 day')::date, updated_at = now()
-           WHERE id = (SELECT id FROM agreements WHERE partner_id = $1 ORDER BY end_date DESC NULLS LAST, created_at DESC LIMIT 1)`,
-          [row.matched_partner_id]
-        );
+        if (agreementRows[0]) {
+          await pool.query(
+            `UPDATE agreements SET main_content=$1, member_benefit=$2, family_benefit=$3, start_date=$4, end_date=$5,
+               usage_condition=$6, notice=$7, updated_at=now()
+             WHERE id = $8`,
+            [data.mainContent ?? null, data.memberBenefit ?? null, data.familyBenefit ?? null,
+             data.startDate || null, data.endDate || null, data.usageCondition ?? null, data.notice ?? null, agreementRows[0].id]
+          );
+        } else {
+          await pool.query(
+            `INSERT INTO agreements (partner_id, start_date, end_date, main_content, member_benefit, family_benefit, usage_condition, notice)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+            [existing.id, data.startDate || null, data.endDate || null, data.mainContent ?? null, data.memberBenefit ?? null,
+             data.familyBenefit ?? null, data.usageCondition ?? null, data.notice ?? null]
+          );
+        }
+        await refreshPartnerCacheFlags(existing.id);
+        result.updated++;
       }
-      await pool.query(`UPDATE excel_import_rows SET approved = true WHERE id = $1`, [row.id]);
-      results.push({ rowId: row.id, ok: true });
     } catch (err) {
-      results.push({ rowId: row.id, ok: false, error: err instanceof Error ? err.message : String(err) });
+      result.skipped.push({
+        rowNumber: row.rowNumber, name: data.name,
+        error: err instanceof Error ? err.message : "알 수 없는 오류로 반영하지 못했습니다.",
+      });
     }
   }
 
-  await pool.query(`UPDATE import_jobs SET status = 'completed' WHERE id = $1`, [jobId]);
-  return results;
+  void adminId; // 감사 로그가 필요해지면 여기서 기록한다 (현재는 별도 로그 테이블 없음).
+  return result;
 }

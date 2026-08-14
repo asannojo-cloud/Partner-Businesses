@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, fileUrl } from "../shared/api";
 import { CATEGORIES } from "../shared/categories";
 import { categoryLabel } from "../shared/formatters";
+import { computeAgreementStatus, STATUS_LABEL, STATUS_COLOR } from "../shared/agreementStatus";
 
 interface PartnerRow {
   id: number;
@@ -12,7 +13,15 @@ interface PartnerRow {
   address: string;
   status: "active" | "inactive";
   end_date: string | null;
+  auto_renewal: boolean;
   representative_image_id: number | null;
+}
+
+interface ExcelImportResult {
+  totalRows: number;
+  inserted: number;
+  updated: number;
+  skipped: { rowNumber: number; name: string | undefined; error: string }[];
 }
 
 export default function PartnersListPage() {
@@ -23,8 +32,11 @@ export default function PartnersListPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [uploadingId, setUploadingId] = useState<number | null>(null);
+  const [excelUploading, setExcelUploading] = useState(false);
+  const [excelResult, setExcelResult] = useState<ExcelImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const uploadTargetId = useRef<number | null>(null);
+  const excelInputRef = useRef<HTMLInputElement | null>(null);
 
   async function load() {
     setLoading(true);
@@ -32,6 +44,7 @@ export default function PartnersListPage() {
     if (q) params.set("q", q);
     if (category) params.set("category", category);
     if (status) params.set("status", status);
+    params.set("pageSize", "200"); // 전체 협약기관 규모가 수백 곳 이내라 별도 페이지네이션 UI 없이 한 번에 보여준다.
     const data = await api.get<{ items: PartnerRow[] }>(`/admin/partners?${params.toString()}`);
     setItems(data.items);
     setSelected(new Set());
@@ -123,16 +136,69 @@ export default function PartnersListPage() {
     if (!e.ctrlKey && !e.metaKey) e.preventDefault();
   }
 
+  // 엑셀 업로드는 검토 화면 없이 즉시 반영된다 (신규는 등록, 기존 기관은 이름 일치 시 갱신).
+  // 엑셀에 없다고 기존 기관을 임의로 종료 처리하지는 않는다.
+  async function handleExcelChosen(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setExcelUploading(true);
+    setExcelResult(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const result = await api.post<ExcelImportResult>("/admin/excel/import", form);
+      setExcelResult(result);
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "엑셀 업로드에 실패했습니다.");
+    } finally {
+      setExcelUploading(false);
+    }
+  }
+
   return (
     <div>
       <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleFileChosen} />
+      <input ref={excelInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleExcelChosen} />
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold text-slate-900">협약기관 관리</h1>
-        <Link to="/admin/partners/new" className="rounded-lg bg-brand-900 text-white text-sm px-4 py-2 font-medium">
-          + 협약기관 추가
-        </Link>
+        <div className="flex items-center gap-2">
+          <a href="/api/admin/excel/template" className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-2 font-medium text-slate-600">
+            양식 다운로드
+          </a>
+          <button
+            onClick={() => excelInputRef.current?.click()}
+            disabled={excelUploading}
+            className="rounded-lg border border-brand-700 text-brand-700 bg-white text-sm px-3 py-2 font-medium disabled:opacity-50"
+          >
+            {excelUploading ? "업로드 중..." : "📊 엑셀 업로드"}
+          </button>
+          <Link to="/admin/partners/new" className="rounded-lg bg-brand-900 text-white text-sm px-4 py-2 font-medium">
+            + 협약기관 추가
+          </Link>
+        </div>
       </div>
+
+      {excelResult && (
+        <div className="mb-4 rounded-xl bg-brand-50 border border-brand-200 px-4 py-3 text-sm">
+          <div className="flex items-center justify-between">
+            <p className="font-medium text-brand-800">
+              엑셀 반영 완료 — 전체 {excelResult.totalRows}행 중 신규 {excelResult.inserted}건, 갱신 {excelResult.updated}건
+              {excelResult.skipped.length > 0 && `, 건너뜀 ${excelResult.skipped.length}건`}
+            </p>
+            <button onClick={() => setExcelResult(null)} className="text-xs text-brand-600 underline shrink-0 ml-3">닫기</button>
+          </div>
+          {excelResult.skipped.length > 0 && (
+            <ul className="mt-2 space-y-0.5 text-xs text-red-600">
+              {excelResult.skipped.map((s, i) => (
+                <li key={i}>{s.rowNumber}행 {s.name ? `(${s.name})` : ""}: {s.error}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-3 mb-4">
         <form onSubmit={(e) => { e.preventDefault(); load(); }} className="flex gap-2">
@@ -184,14 +250,15 @@ export default function PartnersListPage() {
               <th className="px-4 py-3">분류</th>
               <th className="px-4 py-3">주소</th>
               <th className="px-4 py-3">상태</th>
+              <th className="px-4 py-3">협약상태</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">불러오는 중...</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">불러오는 중...</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">협약기관이 없습니다.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">협약기관이 없습니다.</td></tr>
             ) : (
               items.map((p) => (
                 <tr key={p.id} className="border-b border-slate-100 last:border-0">
@@ -237,6 +304,12 @@ export default function PartnersListPage() {
                     <span className={`px-2 py-0.5 rounded-full text-xs ${p.status === "active" ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}>
                       {p.status === "active" ? "활성" : "비활성"}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {(() => {
+                      const s = computeAgreementStatus(p.end_date, p.auto_renewal);
+                      return <span className={`px-2 py-0.5 rounded-full text-xs whitespace-nowrap ${STATUS_COLOR[s]}`}>{STATUS_LABEL[s]}</span>;
+                    })()}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button onClick={() => toggleStatus(p)} className="text-xs text-slate-500 underline">

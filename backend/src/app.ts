@@ -19,10 +19,7 @@ import { adminAgreementsRouter } from "./modules/agreements/agreements.routes";
 import { adminMedicalRouter } from "./modules/medical/medical.routes";
 import { publicFilesRouter } from "./modules/files/files.public.routes";
 import { adminFilesRouter } from "./modules/files/files.admin.routes";
-import { adminUploadsRouter } from "./modules/uploads/uploads.routes";
-import { adminAiRouter } from "./modules/ai/ai.routes";
 import { adminExcelRouter } from "./modules/excel/excel.routes";
-import { adminDuplicatesRouter } from "./modules/duplicates/duplicates.routes";
 import { adminDashboardRouter } from "./modules/dashboard/dashboard.routes";
 import { publicCategoriesRouter } from "./modules/partners/categories.routes";
 import { adminCategoriesRouter } from "./modules/partners/categories.admin.routes";
@@ -93,10 +90,7 @@ export function createApp() {
   app.use("/api/admin/agreements", adminAgreementsRouter);
   app.use("/api/admin/medical-info", adminMedicalRouter);
   app.use("/api/admin/files", adminFilesRouter);
-  app.use("/api/admin/uploads", adminUploadsRouter);
-  app.use("/api/admin/ai", adminAiRouter);
   app.use("/api/admin/excel", adminExcelRouter);
-  app.use("/api/admin/duplicates", adminDuplicatesRouter);
   app.use("/api/admin/dashboard", adminDashboardRouter);
   app.use("/api/admin/categories", adminCategoriesRouter);
 

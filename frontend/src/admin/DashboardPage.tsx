@@ -4,9 +4,8 @@ import { api } from "../shared/api";
 
 interface DashboardData {
   totalActivePartners: number;
+  inactivePartners: number;
   byCategory: { category: string; label: string; count: number }[];
-  pendingUploadJobs: number;
-  pendingReview: number;
   upcomingRenewal: number;
   ended: number;
   recentPartners: { id: number; name: string; category: string; sub_category: string; created_at: string }[];
@@ -38,9 +37,9 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard label="전체 협약기관" value={data.totalActivePartners} to="/admin/partners" />
-        <StatCard label="자료 업로드 대기" value={data.pendingUploadJobs} to="/admin/uploads" tone="warn" />
-        <StatCard label="AI 검토 필요" value={data.pendingReview} to="/admin/ai-review" tone="warn" />
-        <StatCard label="협약 갱신 예정" value={data.upcomingRenewal} to="/admin/agreements" tone="warn" />
+        <StatCard label="비활성 기관" value={data.inactivePartners} to="/admin/partners" />
+        <StatCard label="종료 1개월 전 경고 (추가협약 필요)" value={data.upcomingRenewal} to="/admin/partners" tone="warn" />
+        <StatCard label="협약 종료" value={data.ended} to="/admin/partners" tone="warn" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

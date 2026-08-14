@@ -5,10 +5,6 @@ import { useAdminSessionContext } from "./AdminSessionContext";
 const links = [
   { to: "/admin/dashboard", label: "대시보드" },
   { to: "/admin/partners", label: "협약기관 관리" },
-  { to: "/admin/uploads", label: "자료 업로드" },
-  { to: "/admin/ai-review", label: "AI 자동분류 검토" },
-  { to: "/admin/excel", label: "Excel 관리" },
-  { to: "/admin/agreements", label: "협약기간 관리" },
   { to: "/admin/categories", label: "카테고리 안내" },
   { to: "/admin/settings", label: "관리자 설정" },
 ];
