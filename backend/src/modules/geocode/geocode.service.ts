@@ -39,7 +39,8 @@ async function naverGeocode(address: string): Promise<GeocodeResult> {
       },
     });
     if (!res.ok) {
-      console.error(`[geocode] NAVER API 오류: ${res.status}`);
+      const body = await res.text().catch(() => "");
+      console.error(`[geocode] NAVER API 오류: ${res.status} ${body}`);
       return { latitude: null, longitude: null, status: "failed" };
     }
     const data = (await res.json()) as { addresses?: Array<{ x: string; y: string }> };

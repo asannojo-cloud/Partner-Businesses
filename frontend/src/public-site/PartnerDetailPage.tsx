@@ -71,6 +71,13 @@ export default function PartnerDetailPage() {
         <p className="text-xs text-slate-400 mb-1">{categoryLabel(partner.category)} / {partner.sub_category}</p>
         <h1 className="text-xl font-bold text-slate-900 mb-4">{partner.name}</h1>
 
+        {agreement?.main_content && (
+          <section className="mb-4">
+            <h2 className="font-bold text-slate-900 mb-1">협약내용</h2>
+            <p className="text-sm text-slate-600 whitespace-pre-wrap">{agreement.main_content}</p>
+          </section>
+        )}
+
         {agreement?.member_benefit && (
           <section className="bg-brand-900 text-white rounded-2xl p-5 mb-4">
             <p className="font-bold mb-2">🎁 조합원 특별혜택</p>
@@ -113,13 +120,6 @@ export default function PartnerDetailPage() {
             협약 주요내용이 비어있는 경우가 많아, 이전에는 이 조건에 묶여 협약기간도 함께 안 보였다). */}
         {(agreement?.start_date || agreement?.end_date) && (
           <p className="text-xs text-slate-400 mb-4">📅 협약기간: {agreementPeriodLabel(agreement!.start_date, agreement!.end_date)}</p>
-        )}
-
-        {agreement?.main_content && (
-          <section className="mb-4">
-            <h2 className="font-bold text-slate-900 mb-1">협약 주요내용</h2>
-            <p className="text-sm text-slate-600 whitespace-pre-wrap">{agreement.main_content}</p>
-          </section>
         )}
 
         {agreement?.usage_condition && (

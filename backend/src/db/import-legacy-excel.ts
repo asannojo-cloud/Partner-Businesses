@@ -253,9 +253,11 @@ async function importFile(filePath: string) {
     const partnerId = partnerRows[0].id;
 
     const autoRenewal = /자동연장|계속/.test(row.agreementTermRaw ?? "");
+    // main_content(협약내용)는 별도 컬럼이 엑셀에 없어, "주요내용(할인혜택)" 값을 그대로 사용한다
+    // (2026-08-14 사용자 요청 — 조합원특별혜택 위에 협약내용으로도 동일 내용을 보여달라고 함).
     await pool.query(
-      `INSERT INTO agreements (partner_id, agreement_date, start_date, auto_renewal, member_benefit, usage_condition, notice)
-       VALUES ($1,$2,$2,$3,$4,'모바일회원증 제시',$5)`,
+      `INSERT INTO agreements (partner_id, agreement_date, start_date, auto_renewal, main_content, member_benefit, usage_condition, notice)
+       VALUES ($1,$2,$2,$3,$4,$4,'모바일회원증 제시',$5)`,
       [partnerId, row.agreementDate, autoRenewal, row.memberBenefit, buildNotice(row.representative, row.agreementTermRaw, row.remarks)]
     );
 

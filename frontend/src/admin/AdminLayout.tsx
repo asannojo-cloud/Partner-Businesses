@@ -51,9 +51,12 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-100">
       <header className="md:hidden flex items-center justify-between bg-slate-900 text-white px-4 py-3 shrink-0">
-        <div>
-          <p className="text-[10px] text-slate-400">아산시공무원노동조합</p>
-          <p className="font-bold text-sm">협약기관 관리자</p>
+        <div className="flex items-center gap-2">
+          <img src="/union-logo.png" alt="" className="h-7 w-7 object-contain bg-white rounded-full p-1 shrink-0" />
+          <div>
+            <p className="text-[10px] text-slate-400">아산시공무원노동조합</p>
+            <p className="font-bold text-sm">협약기관 관리자</p>
+          </div>
         </div>
         <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴 열기" className="p-2 -mr-2 text-slate-200">
           <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">

@@ -31,7 +31,10 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-        <p className="text-xs text-slate-400 mb-1">아산시공무원노동조합</p>
+        <div className="flex items-center gap-2 mb-1">
+          <img src="/union-logo.png" alt="" className="h-6 w-6 object-contain shrink-0" />
+          <p className="text-xs text-slate-400">아산시공무원노동조합</p>
+        </div>
         <h1 className="text-xl font-bold text-slate-900 mb-6">협약기관 관리자</h1>
 
         <label className="block text-sm text-slate-600 mb-1">아이디</label>

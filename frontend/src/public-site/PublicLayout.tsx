@@ -13,9 +13,12 @@ export default function PublicLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Link to="/" className="bg-brand-900 text-white px-4 py-3 shrink-0 block">
-        <p className="text-[11px] text-brand-200">아산시공무원노동조합</p>
-        <p className="font-bold">협약기관 안내</p>
+      <Link to="/" className="bg-brand-900 text-white px-4 py-3 shrink-0 flex items-center gap-2">
+        <img src="/union-logo.png" alt="" className="h-8 w-8 object-contain bg-white rounded-full p-1 shrink-0" />
+        <span>
+          <p className="text-[11px] text-brand-200">아산시공무원노동조합</p>
+          <p className="font-bold">협약기관 안내</p>
+        </span>
       </Link>
 
       <main className="flex-1 min-w-0 pb-16">
