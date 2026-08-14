@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 const NAV_ITEMS = [
   { to: "/", label: "홈", icon: "🏠", match: (p: string) => p === "/" },
@@ -13,10 +13,10 @@ export default function PublicLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-brand-900 text-white px-4 py-3 shrink-0">
+      <Link to="/" className="bg-brand-900 text-white px-4 py-3 shrink-0 block">
         <p className="text-[11px] text-brand-200">아산시공무원노동조합</p>
         <p className="font-bold">협약기관 안내</p>
-      </header>
+      </Link>
 
       <main className="flex-1 min-w-0 pb-16">
         <Outlet />
