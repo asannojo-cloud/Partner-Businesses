@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { pool } from "../../db/pool";
 import { adminGuard } from "../../middleware/guards";
-import { isLocked, registerFailedAttempt, resetFailedAttempts, verifyPassword } from "./auth.service";
+import { isLocked, registerFailedAttempt, resetFailedAttempts, verifyPassword, hashPassword } from "./auth.service";
 
 export const adminAuthRouter = Router();
 
@@ -61,4 +61,30 @@ adminAuthRouter.get("/me", adminGuard, async (req, res) => {
   const admin = rows[0];
   if (!admin) return res.status(401).json({ error: "세션이 만료되었습니다." });
   res.json({ username: admin.username, displayName: admin.display_name });
+});
+
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1, "현재 비밀번호를 입력해주세요."),
+  newPassword: z.string().min(8, "새 비밀번호는 8자 이상이어야 합니다."),
+});
+
+adminAuthRouter.patch("/password", adminGuard, async (req, res) => {
+  const parsed = passwordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." });
+  }
+  const { currentPassword, newPassword } = parsed.data;
+
+  const { rows } = await pool.query(`SELECT id, password_hash FROM admin_users WHERE id = $1`, [
+    req.session.auth!.id,
+  ]);
+  const admin = rows[0];
+  if (!admin) return res.status(401).json({ error: "세션이 만료되었습니다." });
+
+  const ok = await verifyPassword(currentPassword, admin.password_hash);
+  if (!ok) return res.status(400).json({ error: "현재 비밀번호가 올바르지 않습니다." });
+
+  const newHash = await hashPassword(newPassword);
+  await pool.query(`UPDATE admin_users SET password_hash = $1 WHERE id = $2`, [newHash, admin.id]);
+  res.json({ ok: true });
 });

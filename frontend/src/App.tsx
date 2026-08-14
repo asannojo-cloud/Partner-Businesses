@@ -21,6 +21,7 @@ import AiReviewPage from "./admin/AiReviewPage";
 import AiReviewDetailPage from "./admin/AiReviewDetailPage";
 import ExcelUploadPage from "./admin/ExcelUploadPage";
 import ExcelJobDetailPage from "./admin/ExcelJobDetailPage";
+import AdminSettingsPage from "./admin/AdminSettingsPage";
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
                 <Route path="ai-review/:id" element={<AiReviewDetailPage />} />
                 <Route path="excel" element={<ExcelUploadPage />} />
                 <Route path="excel/:jobId" element={<ExcelJobDetailPage />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
               </Route>
               <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Routes>

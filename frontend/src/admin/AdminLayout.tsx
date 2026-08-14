@@ -10,6 +10,7 @@ const links = [
   { to: "/admin/excel", label: "Excel 관리" },
   { to: "/admin/agreements", label: "협약기간 관리" },
   { to: "/admin/categories", label: "카테고리 안내" },
+  { to: "/admin/settings", label: "관리자 설정" },
 ];
 
 export default function AdminLayout() {
