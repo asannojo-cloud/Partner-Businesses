@@ -257,7 +257,7 @@ async function importFile(filePath: string) {
     // (2026-08-14 사용자 요청 — 조합원특별혜택 위에 협약내용으로도 동일 내용을 보여달라고 함).
     await pool.query(
       `INSERT INTO agreements (partner_id, agreement_date, start_date, auto_renewal, main_content, member_benefit, usage_condition, notice)
-       VALUES ($1,$2,$2,$3,$4,$4,'모바일회원증 제시',$5)`,
+       VALUES ($1,$2,$2,$3,$4,$4,'아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시',$5)`,
       [partnerId, row.agreementDate, autoRenewal, row.memberBenefit, buildNotice(row.representative, row.agreementTermRaw, row.remarks)]
     );
 

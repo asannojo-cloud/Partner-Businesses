@@ -248,7 +248,7 @@ export default function PartnerFormPage() {
               </div>
               <div>
                 <label className="block text-sm text-slate-600 mb-1">이용조건</label>
-                <input value={agreementForm.usageCondition} onChange={(e) => setAgreementForm({ ...agreementForm, usageCondition: e.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="예: 모바일회원증 제시" />
+                <input value={agreementForm.usageCondition} onChange={(e) => setAgreementForm({ ...agreementForm, usageCondition: e.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="예: 아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시" />
               </div>
               <div>
                 <label className="block text-sm text-slate-600 mb-1">유의사항</label>

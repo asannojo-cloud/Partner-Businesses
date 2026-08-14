@@ -186,7 +186,7 @@ export default function PartnerDetailPage() {
         )}
 
         <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-800">
-          협약 혜택 이용 시 아산시공무원노동조합 <b>모바일회원증</b>을 제시해주세요. (본 서비스는 모바일회원증 앱과 별도로 운영됩니다.)
+          협약 혜택 이용 시 <b>아산시공무원노동조합 조합원증(또는 모바일 조합원증)</b>을 제시해주세요. (본 서비스는 아산시공무원노동조합 조합원증(모바일 조합원증) 앱과 별도로 운영됩니다.)
         </div>
 
         <p className="mt-4 text-[11px] leading-relaxed text-slate-400">

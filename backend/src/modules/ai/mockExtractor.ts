@@ -72,7 +72,7 @@ export function mockExtract(input: DocumentGroupInput): PartnerCandidate {
     mainContent: text ? text.slice(0, 300) : null,
     memberBenefit: benefitLine,
     familyBenefit: null,
-    usageCondition: "모바일회원증 제시",
+    usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시",
     notice: null,
     healthCheckAvailable: healthCheckMentioned || null,
     healthCheckTypes: healthCheckMentioned ? "건강검진 (자동추출 — 세부 종류는 확인 필요)" : null,

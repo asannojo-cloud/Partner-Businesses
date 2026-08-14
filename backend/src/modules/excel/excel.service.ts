@@ -10,7 +10,7 @@ export function buildTemplateWorkbook(): Buffer {
   const exampleRow = [
     "○○병원", "병원·의료", "종합병원", "충남 아산시 온천대로 1234", "041-000-0000", "https://example.com",
     "조합원 진료비 할인", "진료비 10% 할인", "가족도 동일 적용", "가능", "종합건강검진 30% 할인",
-    "2026-01-01", "2027-12-31", "모바일회원증 제시", "사전 예약 필요",
+    "2026-01-01", "2027-12-31", "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시", "사전 예약 필요",
   ];
   const categoryHelp = CATEGORIES.map((c) => `${c.label}: ${c.subCategories.join("/")}`);
   const ws = XLSX.utils.aoa_to_sheet([headers, exampleRow]);

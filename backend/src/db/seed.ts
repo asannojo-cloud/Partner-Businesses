@@ -78,7 +78,7 @@ const seedPartners: SeedPartner[] = [
       mainContent: "조합원 및 가족 대상 진료비 할인, 종합건강검진 특별가 제공",
       memberBenefit: "진료비 10% 할인, 건강검진 30% 할인",
       familyBenefit: "조합원 가족도 동일 혜택 적용",
-      usageCondition: "모바일회원증 제시, 건강검진은 사전 예약 필요",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시, 건강검진은 사전 예약 필요",
     },
     medical: {
       medicalType: "종합병원",
@@ -110,7 +110,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: false,
       mainContent: "조합원 대상 임플란트, 스케일링, 교정 진료비 할인",
       memberBenefit: "스케일링 무료(연 1회), 임플란트 15% 할인",
-      usageCondition: "모바일회원증 제시, 본인만 이용 가능",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시, 본인만 이용 가능",
     },
     medical: {
       medicalType: "치과",
@@ -143,7 +143,7 @@ const seedPartners: SeedPartner[] = [
       mainContent: "전 메뉴 조합원 할인",
       memberBenefit: "전 메뉴 10% 할인",
       familyBenefit: "가족 동반 시에도 동일 할인 적용",
-      usageCondition: "모바일회원증 제시",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시",
     },
   },
   {
@@ -161,7 +161,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: true,
       mainContent: "음료 및 디저트 조합원 할인",
       memberBenefit: "전 음료 15% 할인",
-      usageCondition: "모바일회원증 제시, 1인 1잔 한정",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시, 1인 1잔 한정",
     },
   },
   {
@@ -180,7 +180,7 @@ const seedPartners: SeedPartner[] = [
       mainContent: "정기 공연 관람권 할인 제공",
       memberBenefit: "관람권 20% 할인",
       familyBenefit: "가족 동반 관람 시 최대 4매까지 할인 적용",
-      usageCondition: "모바일회원증 제시, 사전 예약 필요",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시, 사전 예약 필요",
     },
   },
   {
@@ -198,7 +198,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: true,
       mainContent: "성인 영어회화반 수강료 할인",
       memberBenefit: "수강료 10% 할인, 등록비 면제",
-      usageCondition: "모바일회원증 제시, 조합원 본인만 이용 가능",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시, 조합원 본인만 이용 가능",
     },
   },
   {
@@ -217,7 +217,7 @@ const seedPartners: SeedPartner[] = [
       mainContent: "조합원 자녀 우선입소 협약, 특별활동비 할인",
       memberBenefit: "특별활동비 20% 할인",
       familyBenefit: "조합원 자녀 우선입소 대상",
-      usageCondition: "모바일회원증 제시, 조합원 가족 이용 가능",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시, 조합원 가족 이용 가능",
     },
   },
   {
@@ -235,7 +235,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: true,
       mainContent: "정기 점검 및 부품 교체 할인",
       memberBenefit: "공임 15% 할인, 엔진오일 무료 교체(연 1회)",
-      usageCondition: "모바일회원증 제시",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시",
     },
   },
   {
@@ -253,7 +253,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: false,
       mainContent: "요금제 가입 및 단말기 구매 시 할인",
       memberBenefit: "월 요금 5% 할인, 액세서리 증정",
-      usageCondition: "모바일회원증 제시, 신규/기변 모두 적용",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시, 신규/기변 모두 적용",
     },
   },
   {
@@ -271,7 +271,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: true,
       mainContent: "정장, 이불류 세탁 할인",
       memberBenefit: "전 품목 10% 할인",
-      usageCondition: "모바일회원증 제시",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시",
     },
   },
   {
@@ -289,7 +289,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: true,
       mainContent: "예적금 우대금리, 각종 수수료 면제",
       memberBenefit: "적금 우대금리 0.3%p, 송금 수수료 면제",
-      usageCondition: "모바일회원증 제시, 조합원 본인 명의 계좌 한정",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시, 조합원 본인 명의 계좌 한정",
     },
   },
   {
@@ -307,7 +307,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: false,
       mainContent: "이사, 입주청소 서비스 할인",
       memberBenefit: "서비스 이용료 10% 할인",
-      usageCondition: "모바일회원증 제시, 사전 견적 필요",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시, 사전 견적 필요",
     },
   },
   {
@@ -325,7 +325,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: false,
       mainContent: "전 메뉴 할인 (종료됨)",
       memberBenefit: "전 메뉴 10% 할인",
-      usageCondition: "모바일회원증 제시",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시",
     },
   },
   {
@@ -343,7 +343,7 @@ const seedPartners: SeedPartner[] = [
       autoRenewal: false,
       mainContent: "안경, 콘택트렌즈 구매 할인",
       memberBenefit: "안경테 20% 할인, 렌즈 10% 할인",
-      usageCondition: "모바일회원증 제시",
+      usageCondition: "아산시공무원노동조합 조합원증 또는 모바일 조합원증 제시",
     },
   },
 ];
