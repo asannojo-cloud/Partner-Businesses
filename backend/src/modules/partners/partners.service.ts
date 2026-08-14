@@ -168,6 +168,12 @@ export async function getPublicPartnerDetail(id: number) {
     [id]
   );
 
+  // 조회수 집계 (PRD 2차 기능: "가장 많이 이용된 협약기관" 랭킹의 기반 데이터). 실패해도
+  // 상세페이지 응답 자체를 막지는 않는다 — 통계는 부가 기능이지 핵심 조회 흐름이 아니다.
+  pool.query(`UPDATE partners SET view_count = view_count + 1 WHERE id = $1`, [id]).catch((err) => {
+    console.error(`[partners] 조회수 증가 실패 (partner ${id}):`, err);
+  });
+
   return {
     partner,
     agreement,
@@ -176,4 +182,23 @@ export async function getPublicPartnerDetail(id: number) {
     files,
     agreementEffectiveStatus: agreement ? computeAgreementStatus(agreement.end_date) : "active",
   };
+}
+
+/** 조합원이 가장 많이 조회한(이용한) 협약기관 TOP N (협약 종료된 기관은 제외). */
+export async function getTopViewedPartners(limit: number) {
+  const { rows } = await pool.query(
+    `SELECT
+       p.id, p.name, p.category, p.sub_category, p.address, p.view_count,
+       p.representative_image_id, p.health_check_available, p.member_discount, p.family_available,
+       a.member_benefit, a.family_benefit, a.end_date
+     FROM partners p
+     LEFT JOIN LATERAL (
+       SELECT * FROM agreements WHERE partner_id = p.id ORDER BY end_date DESC NULLS LAST, created_at DESC LIMIT 1
+     ) a ON true
+     WHERE p.status = 'active' AND p.view_count > 0
+     ORDER BY p.view_count DESC
+     LIMIT $1`,
+    [limit * 2] // 종료 협약 필터링으로 줄어들 수 있어 여유 있게 가져온다
+  );
+  return rows.filter((r) => computeAgreementStatus(r.end_date) !== "ended").slice(0, limit);
 }

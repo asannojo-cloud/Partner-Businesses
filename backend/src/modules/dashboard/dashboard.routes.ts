@@ -3,6 +3,7 @@ import { pool } from "../../db/pool";
 import { adminGuard } from "../../middleware/guards";
 import { CATEGORIES } from "../../shared/categories";
 import { computeAgreementStatus } from "../../utils/agreementStatus";
+import { getTopViewedPartners } from "../partners/partners.service";
 
 export const adminDashboardRouter = Router();
 adminDashboardRouter.use(adminGuard);
@@ -42,6 +43,8 @@ adminDashboardRouter.get("/", async (req, res) => {
     `SELECT id, name, category, sub_category, created_at FROM partners ORDER BY created_at DESC LIMIT 5`
   );
 
+  const topViewed = await getTopViewedPartners(10);
+
   res.json({
     totalActivePartners: totalRows[0].count,
     byCategory,
@@ -50,5 +53,6 @@ adminDashboardRouter.get("/", async (req, res) => {
     upcomingRenewal,
     ended,
     recentPartners,
+    topViewed,
   });
 });

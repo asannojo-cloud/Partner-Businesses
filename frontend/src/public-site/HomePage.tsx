@@ -1,15 +1,27 @@
-import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { api } from "../shared/api";
 import { CATEGORIES } from "../shared/categories";
+import { categoryLabel } from "../shared/formatters";
 
 const CATEGORY_ICONS: Record<string, string> = {
   medical: "🏥", restaurant: "🍽️", culture: "🎭", education: "📚", childcare: "🧸",
   automobile: "🚗", telecom: "📱", living: "🧺", finance: "🏦", etc: "🗂️",
 };
 
+interface TopPartner {
+  id: number; name: string; category: string; sub_category: string;
+  member_benefit: string | null; view_count: number;
+}
+
 export default function HomePage() {
   const [q, setQ] = useState("");
+  const [topPartners, setTopPartners] = useState<TopPartner[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get<{ items: TopPartner[] }>("/partners/top?limit=10").then((d) => setTopPartners(d.items)).catch(() => setTopPartners([]));
+  }, []);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -42,7 +54,7 @@ export default function HomePage() {
       </button>
 
       <h2 className="font-bold text-slate-900 mb-3">카테고리</h2>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         {CATEGORIES.map((c) => (
           <button
             key={c.code}
@@ -54,6 +66,26 @@ export default function HomePage() {
           </button>
         ))}
       </div>
+
+      {topPartners.length > 0 && (
+        <section>
+          <h2 className="font-bold text-slate-900 mb-3">🔥 조합원이 가장 많이 이용한 협약기관</h2>
+          <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100">
+            {topPartners.map((p, i) => (
+              <Link key={p.id} to={`/partners/${p.id}`} className="flex items-center gap-3 px-4 py-3">
+                <span className={`w-6 text-center font-bold ${i < 3 ? "text-brand-700" : "text-slate-300"}`}>{i + 1}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-slate-900 truncate">{p.name}</p>
+                  <p className="text-xs text-slate-400">
+                    {categoryLabel(p.category)} / {p.sub_category}
+                    {p.member_benefit && <span className="text-slate-500"> · {p.member_benefit}</span>}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
