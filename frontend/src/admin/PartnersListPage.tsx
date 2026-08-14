@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../shared/api";
+import { api, fileUrl } from "../shared/api";
 import { CATEGORIES } from "../shared/categories";
 import { categoryLabel } from "../shared/formatters";
 
@@ -12,6 +12,7 @@ interface PartnerRow {
   address: string;
   status: "active" | "inactive";
   end_date: string | null;
+  representative_image_id: number | null;
 }
 
 export default function PartnersListPage() {
@@ -20,6 +21,10 @@ export default function PartnersListPage() {
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [uploadingId, setUploadingId] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadTargetId = useRef<number | null>(null);
 
   async function load() {
     setLoading(true);
@@ -29,6 +34,7 @@ export default function PartnersListPage() {
     if (status) params.set("status", status);
     const data = await api.get<{ items: PartnerRow[] }>(`/admin/partners?${params.toString()}`);
     setItems(data.items);
+    setSelected(new Set());
     setLoading(false);
   }
 
@@ -43,8 +49,59 @@ export default function PartnersListPage() {
     load();
   }
 
+  function toggleSelect(id: number) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelected((prev) => (prev.size === items.length ? new Set() : new Set(items.map((p) => p.id))));
+  }
+
+  async function bulkSetStatus(next: "active" | "inactive") {
+    if (selected.size === 0) return;
+    await Promise.all([...selected].map((id) => api.patch(`/admin/partners/${id}/status`, { status: next })));
+    load();
+  }
+
+  async function bulkDelete() {
+    if (selected.size === 0) return;
+    if (!confirm(`선택한 ${selected.size}개 협약기관을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) return;
+    await Promise.all([...selected].map((id) => api.delete(`/admin/partners/${id}`)));
+    load();
+  }
+
+  function openUploadFor(id: number) {
+    uploadTargetId.current = id;
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    const partnerId = uploadTargetId.current;
+    e.target.value = "";
+    if (!file || !partnerId) return;
+    setUploadingId(partnerId);
+    try {
+      const form = new FormData();
+      form.append("files", file);
+      await api.post(`/admin/files/image/${partnerId}`, form);
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "이미지 업로드에 실패했습니다.");
+    } finally {
+      setUploadingId(null);
+    }
+  }
+
   return (
     <div>
+      <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleFileChosen} />
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">협약기관 관리</h1>
         <Link to="/admin/partners/new" className="rounded-lg bg-brand-900 text-white text-sm px-4 py-2 font-medium">
@@ -75,10 +132,29 @@ export default function PartnersListPage() {
         </select>
       </div>
 
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 mb-3 rounded-xl bg-brand-50 border border-brand-200 px-4 py-2.5 text-sm">
+          <span className="font-medium text-brand-800">{selected.size}개 선택됨</span>
+          <button onClick={() => bulkSetStatus("active")} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs">일괄 활성화</button>
+          <button onClick={() => bulkSetStatus("inactive")} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs">일괄 비활성화</button>
+          <button onClick={bulkDelete} className="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs text-red-600">일괄 삭제</button>
+          <button onClick={() => setSelected(new Set())} className="ml-auto text-xs text-slate-400 underline">선택 해제</button>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-slate-500 border-b border-slate-200">
+              <th className="px-4 py-3 w-10">
+                <input
+                  type="checkbox"
+                  checked={items.length > 0 && selected.size === items.length}
+                  onChange={toggleSelectAll}
+                  aria-label="전체 선택"
+                />
+              </th>
+              <th className="px-4 py-3 w-16">사진</th>
               <th className="px-4 py-3">기관명</th>
               <th className="px-4 py-3">분류</th>
               <th className="px-4 py-3">주소</th>
@@ -88,12 +164,36 @@ export default function PartnersListPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">불러오는 중...</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">불러오는 중...</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">협약기관이 없습니다.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">협약기관이 없습니다.</td></tr>
             ) : (
               items.map((p) => (
                 <tr key={p.id} className="border-b border-slate-100 last:border-0">
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(p.id)}
+                      onChange={() => toggleSelect(p.id)}
+                      aria-label={`${p.name} 선택`}
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => openUploadFor(p.id)}
+                      title="클릭하여 사진 업로드"
+                      className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0"
+                    >
+                      {uploadingId === p.id ? (
+                        <span className="text-[10px] text-slate-400">업로드중</span>
+                      ) : p.representative_image_id ? (
+                        <img src={fileUrl(`/files/image/${p.representative_image_id}`)} alt={p.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[10px] text-slate-400 leading-tight text-center">이미지<br />없음</span>
+                      )}
+                    </button>
+                  </td>
                   <td className="px-4 py-3">
                     <Link to={`/admin/partners/${p.id}`} className="text-brand-700 hover:underline font-medium">{p.name}</Link>
                   </td>
