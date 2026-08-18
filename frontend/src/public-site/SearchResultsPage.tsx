@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../shared/api";
 import { CATEGORIES } from "../shared/categories";
+import { ASAN_CITY_HALL } from "../shared/naverMaps";
 import PartnerCard, { type PartnerCardData } from "../shared/PartnerCard";
 
 interface ListResponse { items: PartnerCardData[]; total: number; page: number; pageSize: number; }
@@ -48,6 +49,28 @@ export default function SearchResultsPage() {
   useEffect(() => setQDraft(q), [q]);
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
+  // "내위치순" 정렬: 위치 권한을 승인하면 실제 좌표로, 거부/미지원이면 아산시청 좌표로 대신
+  // 비교한다 (2026-08-18 요청) — 어느 쪽이든 항상 결과가 나오게 하기 위함.
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  function requestLocationSort() {
+    if (!navigator.geolocation) {
+      setCoords(ASAN_CITY_HALL);
+      setFilter("sort", "distance");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setFilter("sort", "distance");
+      },
+      () => {
+        setCoords(ASAN_CITY_HALL); // 거부/실패 시 아산시청 기준으로 대체
+        setFilter("sort", "distance");
+      },
+      { enableHighAccuracy: false, timeout: 8000 }
+    );
+  }
+
   useEffect(() => {
     api.get<StatsResponse>("/partners/stats").then((d) => {
       setOverallTotal(d.total);
@@ -68,6 +91,13 @@ export default function SearchResultsPage() {
       return;
     }
 
+    // 내위치순인데 아직 좌표가 없으면(권한 응답 대기 중) 잠시 목록을 불러오지 않고 기다린다 —
+    // requestLocationSort()가 좌표를 채우면 coords가 바뀌면서 아래 useEffect가 다시 실행된다.
+    if (sort === "distance" && !coords) {
+      setLoading(false);
+      return;
+    }
+
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (categoryCode) params.set("category", categoryCode);
@@ -76,6 +106,10 @@ export default function SearchResultsPage() {
     if (memberDiscount) params.set("memberDiscount", "true");
     if (familyAvailable) params.set("familyAvailable", "true");
     params.set("sort", sort);
+    if (sort === "distance" && coords) {
+      params.set("lat", String(coords.lat));
+      params.set("lng", String(coords.lng));
+    }
     params.set("page", String(nextPage));
     params.set("pageSize", "20");
 
@@ -90,7 +124,7 @@ export default function SearchResultsPage() {
   useEffect(() => {
     load(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryCode, q, subCategory, healthCheck, memberDiscount, familyAvailable, sort]);
+  }, [categoryCode, q, subCategory, healthCheck, memberDiscount, familyAvailable, sort, coords]);
 
   function setFilter(key: string, value: string | boolean | null) {
     const next = new URLSearchParams(searchParams);
@@ -217,14 +251,16 @@ export default function SearchResultsPage() {
         )}
       </div>
 
-      <div className="flex flex-wrap gap-1.5 mb-4">
-        <button onClick={() => setFilter("healthCheck", !healthCheck)} className={`text-xs px-2.5 py-1 rounded-full border ${healthCheck ? "bg-brand-100 text-brand-700 border-brand-300" : "bg-white border-slate-300 text-slate-600"}`}>건강검진 가능</button>
-        <button onClick={() => setFilter("memberDiscount", !memberDiscount)} className={`text-xs px-2.5 py-1 rounded-full border ${memberDiscount ? "bg-orange-100 text-orange-700 border-orange-300" : "bg-white border-slate-300 text-slate-600"}`}>조합원 할인</button>
-        <button onClick={() => setFilter("familyAvailable", !familyAvailable)} className={`text-xs px-2.5 py-1 rounded-full border ${familyAvailable ? "bg-purple-100 text-purple-700 border-purple-300" : "bg-white border-slate-300 text-slate-600"}`}>가족 이용 가능</button>
-        <select value={sort} onChange={(e) => setFilter("sort", e.target.value)} className="text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 ml-auto">
+      <div className="flex justify-end mb-4">
+        <select
+          value={sort}
+          onChange={(e) => (e.target.value === "distance" ? requestLocationSort() : setFilter("sort", e.target.value))}
+          className="text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600"
+        >
           <option value="latest">최신순</option>
           <option value="popularity">검색순</option>
           <option value="recommend">추천순</option>
+          <option value="distance">내위치순</option>
         </select>
       </div>
 

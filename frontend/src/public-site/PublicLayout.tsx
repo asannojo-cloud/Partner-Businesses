@@ -35,7 +35,7 @@ export default function PublicLayout() {
         </div>
         <Link to="/" className="flex items-center gap-2 min-w-0">
           <img src="/union-logo.png" alt="" className="h-8 w-8 object-contain bg-white rounded-full p-1 shrink-0" />
-          <p className="font-bold text-sm whitespace-nowrap">아산시공무원노동조합 협약기관 안내</p>
+          <p className="font-bold text-sm whitespace-nowrap">아공노 협약기관 안내</p>
         </Link>
       </header>
 
