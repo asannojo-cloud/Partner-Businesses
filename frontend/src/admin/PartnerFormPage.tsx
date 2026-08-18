@@ -336,7 +336,13 @@ export default function PartnerFormPage() {
                 </div>
               ))}
             </div>
-            <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => handleUploadImages(e.target.files)} className="text-sm" />
+            <div className="rounded-xl border-2 border-dashed border-brand-200 bg-brand-50 px-4 py-3">
+              <input
+                type="file" accept="image/jpeg,image/png,image/webp" multiple
+                onChange={(e) => handleUploadImages(e.target.files)}
+                className="text-sm w-full file:mr-3 file:rounded-lg file:border-0 file:bg-brand-900 file:text-white file:text-xs file:font-medium file:px-3 file:py-2 file:cursor-pointer"
+              />
+            </div>
           </section>
 
           {/* 협약서 */}
@@ -357,8 +363,14 @@ export default function PartnerFormPage() {
               ))}
               {files.length === 0 && <p className="text-sm text-slate-400">등록된 협약서가 없습니다.</p>}
             </ul>
-            <input type="file" accept=".pdf,.hwp,.hwpx,.docx" onChange={(e) => handleUploadAgreementFile(e.target.files)} className="text-sm" />
-            <p className="text-xs text-slate-400 mt-1">업로드 후 "공개"에 체크해야 조합원 화면에서 열람할 수 있습니다.</p>
+            <div className="rounded-xl border-2 border-dashed border-brand-200 bg-brand-50 px-4 py-3">
+              <input
+                type="file" accept=".pdf,.hwp,.hwpx,.docx"
+                onChange={(e) => handleUploadAgreementFile(e.target.files)}
+                className="text-sm w-full file:mr-3 file:rounded-lg file:border-0 file:bg-brand-900 file:text-white file:text-xs file:font-medium file:px-3 file:py-2 file:cursor-pointer"
+              />
+              <p className="text-xs text-slate-500 mt-2">업로드 후 "공개"에 체크해야 조합원 화면에서 열람할 수 있습니다.</p>
+            </div>
           </section>
         </>
       )}
