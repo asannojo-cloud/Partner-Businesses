@@ -209,10 +209,14 @@ export async function getTopViewedPartners(limit: number) {
   return rows.filter((r) => computeAgreementStatus(r.end_date, r.auto_renewal) !== "ended").slice(0, limit);
 }
 
-/** 공개 화면 상단에 보여줄 전체 협약기관 수 + 대분류별 소계 (협약 종료된 기관은 제외). */
+/**
+ * 공개 화면 상단에 보여줄 전체 협약기관 수 + 대분류/세부분류별 소계 (협약 종료된 기관은 제외).
+ * 세부분류별 소계는 상세검색에서 "협약기관이 하나도 없는 세부분류는 숨긴다"는 요구를
+ * 만족시키기 위한 것이다 (2026-08-18).
+ */
 export async function getPublicPartnerStats() {
   const { rows } = await pool.query(
-    `SELECT p.category, a.end_date, a.auto_renewal
+    `SELECT p.category, p.sub_category, a.end_date, a.auto_renewal
      FROM partners p
      LEFT JOIN LATERAL (
        SELECT * FROM agreements WHERE partner_id = p.id ORDER BY end_date DESC NULLS LAST, created_at DESC LIMIT 1
@@ -222,12 +226,19 @@ export async function getPublicPartnerStats() {
   const visible = rows.filter((r) => computeAgreementStatus(r.end_date, r.auto_renewal) !== "ended");
 
   const byCategory = new Map<string, number>();
+  const bySubCategory = new Map<string, number>(); // key: `${category}::${subCategory}`
   for (const r of visible) {
     byCategory.set(r.category, (byCategory.get(r.category) ?? 0) + 1);
+    const subKey = `${r.category}::${r.sub_category}`;
+    bySubCategory.set(subKey, (bySubCategory.get(subKey) ?? 0) + 1);
   }
 
   return {
     total: visible.length,
     byCategory: [...byCategory.entries()].map(([category, count]) => ({ category, count })),
+    bySubCategory: [...bySubCategory.entries()].map(([key, count]) => {
+      const [category, subCategory] = key.split("::");
+      return { category, subCategory, count };
+    }),
   };
 }

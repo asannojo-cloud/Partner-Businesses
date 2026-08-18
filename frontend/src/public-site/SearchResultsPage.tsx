@@ -5,7 +5,11 @@ import { CATEGORIES } from "../shared/categories";
 import PartnerCard, { type PartnerCardData } from "../shared/PartnerCard";
 
 interface ListResponse { items: PartnerCardData[]; total: number; page: number; pageSize: number; }
-interface StatsResponse { total: number; byCategory: { category: string; count: number }[]; }
+interface StatsResponse {
+  total: number;
+  byCategory: { category: string; count: number }[];
+  bySubCategory: { category: string; subCategory: string; count: number }[];
+}
 
 const TOP_LIMIT = 10;
 
@@ -16,6 +20,8 @@ export default function SearchResultsPage() {
   const [items, setItems] = useState<PartnerCardData[]>([]);
   const [total, setTotal] = useState(0);
   const [overallTotal, setOverallTotal] = useState(0); // 필터와 무관한 전체 협약기관 수 (상세검색 패널에 표시)
+  // 협약기관이 하나도 없는 세부분류는 상세검색에서 숨기고, 나중에 등록되면 자동으로 다시 보인다.
+  const [subCategoryCounts, setSubCategoryCounts] = useState<Map<string, number>>(new Map());
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   // 서버는 페이지 단위로 가져온 뒤 종료된 협약을 걸러내므로(백엔드 partners.service.ts 주석 참고),
@@ -43,7 +49,10 @@ export default function SearchResultsPage() {
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
-    api.get<StatsResponse>("/partners/stats").then((d) => setOverallTotal(d.total)).catch(() => {});
+    api.get<StatsResponse>("/partners/stats").then((d) => {
+      setOverallTotal(d.total);
+      setSubCategoryCounts(new Map(d.bySubCategory.map((s) => [`${s.category}::${s.subCategory}`, s.count])));
+    }).catch(() => {});
   }, []);
 
   async function load(nextPage: number, append: boolean) {
@@ -174,9 +183,13 @@ export default function SearchResultsPage() {
               <p className="text-xs text-slate-400 mb-2">세부분류 선택</p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 <button onClick={() => setFilter("subCategory", null)} className={`text-xs px-2.5 py-1 rounded-full border ${!subCategory ? "bg-brand-700 text-white border-brand-700" : "bg-white border-slate-300 text-slate-600"}`}>전체</button>
-                {categoryDef.subCategories.map((s) => (
-                  <button key={s} onClick={() => setFilter("subCategory", s)} className={`text-xs px-2.5 py-1 rounded-full border ${subCategory === s ? "bg-brand-700 text-white border-brand-700" : "bg-white border-slate-300 text-slate-600"}`}>{s}</button>
-                ))}
+                {categoryDef.subCategories
+                  // 협약기관이 하나도 없는 세부분류는 숨긴다. 다만 지금 선택돼 있는 값은(예: URL로
+                  // 직접 들어온 경우) 갑자기 사라지면 혼란스러우니 예외적으로 계속 보여준다.
+                  .filter((s) => (subCategoryCounts.get(`${categoryDef.code}::${s}`) ?? 0) > 0 || s === subCategory)
+                  .map((s) => (
+                    <button key={s} onClick={() => setFilter("subCategory", s)} className={`text-xs px-2.5 py-1 rounded-full border ${subCategory === s ? "bg-brand-700 text-white border-brand-700" : "bg-white border-slate-300 text-slate-600"}`}>{s}</button>
+                  ))}
               </div>
             </>
           )}
