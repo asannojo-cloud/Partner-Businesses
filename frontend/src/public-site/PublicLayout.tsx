@@ -25,11 +25,11 @@ export default function PublicLayout() {
           className="flex items-center gap-1 text-xs font-bold bg-white/10 rounded-full px-2 py-1.5 shrink-0"
         >
           <span className="h-5 w-5 flex items-center justify-center text-sm leading-none shrink-0">🏠</span>
-          <span>HOME</span>
+          <span>홈</span>
         </a>
         <Link to="/" className="flex items-center gap-1.5 min-w-0">
           <img src="/union-logo.png" alt="" className="h-5 w-5 object-contain bg-white rounded-full p-0.5 shrink-0" />
-          <p className="font-bold text-xs whitespace-nowrap">아공노 협약기관 안내</p>
+          <p className="font-bold whitespace-nowrap">아공노 협약기관 안내</p>
         </Link>
         <a href="tel:0415402667" className="flex items-center gap-1 text-xs bg-white/10 rounded-full px-2 py-1.5 shrink-0">
           <span className="h-5 w-5 flex items-center justify-center text-sm leading-none shrink-0">☎</span>
