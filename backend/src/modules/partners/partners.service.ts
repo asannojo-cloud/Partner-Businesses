@@ -8,7 +8,7 @@ export interface PublicPartnerFilters {
   healthCheck?: boolean;
   memberDiscount?: boolean;
   familyAvailable?: boolean;
-  sort?: "name" | "latest" | "distance";
+  sort?: "name" | "latest" | "distance" | "relevance";
   lat?: number;
   lng?: number;
   page: number;
@@ -59,6 +59,12 @@ export async function listPublicPartners(filters: PublicPartnerFilters) {
 
   let orderBy = "p.name ASC";
   if (filters.sort === "latest") orderBy = "a.start_date DESC NULLS LAST, p.created_at DESC";
+  // 관련도순: pg_trgm similarity()로 검색어와 기관명이 얼마나 비슷한지 점수를 매겨 정렬한다.
+  // 검색어가 없으면 "관련도"라는 개념 자체가 성립하지 않으므로 기본(이름순)으로 둔다.
+  if (filters.sort === "relevance" && filters.q && filters.q.trim()) {
+    const relevanceParam = addParam(filters.q.trim());
+    orderBy = `similarity(p.name, ${relevanceParam}) DESC, p.name ASC`;
+  }
   if (filters.sort === "distance" && filters.lat != null && filters.lng != null) {
     const latParam = addParam(filters.lat);
     const lngParam = addParam(filters.lng);

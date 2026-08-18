@@ -11,7 +11,7 @@ const listQuerySchema = z.object({
   healthCheck: z.coerce.boolean().optional(),
   memberDiscount: z.coerce.boolean().optional(),
   familyAvailable: z.coerce.boolean().optional(),
-  sort: z.enum(["name", "latest", "distance"]).optional(),
+  sort: z.enum(["name", "latest", "distance", "relevance"]).optional(),
   lat: z.coerce.number().optional(),
   lng: z.coerce.number().optional(),
   page: z.coerce.number().int().min(1).default(1),

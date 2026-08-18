@@ -1,11 +1,15 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 const NAV_ITEMS = [
-  { to: "/", label: "홈", icon: "🏠", match: (p: string) => p === "/" },
+  { to: "/", label: "홈", icon: "🤝", match: (p: string) => p === "/" },
   { to: "/search", label: "검색", icon: "🔍", match: (p: string) => p === "/search" || p.startsWith("/category") },
   { to: "/map", label: "지도", icon: "🗺️", match: (p: string) => p === "/map" },
   { to: "/favorites", label: "즐겨찾기", icon: "⭐", match: (p: string) => p === "/favorites" },
 ];
+
+// 모바일 조합원증 앱에서 넘어온 조합원이 다시 그 앱으로 돌아갈 방법이 없다는 요청으로 추가
+// (2026-08-18). 협약기관 안내는 그 앱과 완전히 별개 서비스라 URL 링크로만 연결한다.
+const MEMBER_CARD_APP_URL = "https://agongno-membercard.onrender.com/member/help";
 
 export default function PublicLayout() {
   const location = useLocation();
@@ -14,7 +18,15 @@ export default function PublicLayout() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-brand-900 text-white px-4 py-3 shrink-0 flex items-center justify-between gap-2">
-        <Link to="/" className="flex items-center gap-2 min-w-0">
+        <a
+          href={MEMBER_CARD_APP_URL}
+          aria-label="조합원증 앱으로 돌아가기"
+          title="조합원증 앱으로 돌아가기"
+          className="w-8 h-8 flex items-center justify-center text-xl bg-white/10 rounded-full shrink-0"
+        >
+          🏠
+        </a>
+        <Link to="/" className="flex items-center gap-2 min-w-0 flex-1">
           <img src="/union-logo.png" alt="" className="h-8 w-8 object-contain bg-white rounded-full p-1 shrink-0" />
           <span>
             <p className="text-[11px] text-brand-200">아산시공무원노동조합</p>

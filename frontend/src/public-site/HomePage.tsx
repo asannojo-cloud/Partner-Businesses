@@ -7,7 +7,9 @@ import { categoryLabel } from "../shared/formatters";
 const CATEGORY_ICONS: Record<string, string> = {
   medical: "🏥", restaurant: "🍽️", culture: "🎭", education: "📚", childcare: "🧸",
   automobile: "🚗", telecom: "📱", living: "🧺", finance: "🏦", etc: "🗂️",
+  custom_11: "⚱️", marriage: "💐", coffee_bakery: "☕",
 };
+const DEFAULT_CATEGORY_ICON = "📦"; // 관리자가 새 대분류를 추가하면 아이콘이 아직 없을 수 있다.
 
 interface TopPartner {
   id: number; name: string; category: string; sub_category: string;
@@ -54,15 +56,15 @@ export default function HomePage() {
       </button>
 
       <h2 className="font-bold text-slate-900 mb-3">카테고리</h2>
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-4 gap-2 mb-6">
         {CATEGORIES.map((c) => (
           <button
             key={c.code}
             onClick={() => navigate(`/category/${c.code}`)}
-            className="bg-white rounded-2xl border border-slate-200 py-4 flex flex-col items-center gap-1.5 active:bg-slate-50"
+            className="bg-white rounded-2xl border border-slate-200 py-3 flex flex-col items-center gap-1 active:bg-slate-50"
           >
-            <span className="text-2xl">{CATEGORY_ICONS[c.code]}</span>
-            <span className="text-xs font-medium text-slate-700">{c.label}</span>
+            <span className="text-xl">{CATEGORY_ICONS[c.code] ?? DEFAULT_CATEGORY_ICON}</span>
+            <span className="text-[11px] font-medium text-slate-700 text-center leading-tight">{c.label}</span>
           </button>
         ))}
       </div>

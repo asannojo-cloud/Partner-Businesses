@@ -5,6 +5,9 @@ import { CATEGORIES } from "../shared/categories";
 import PartnerCard, { type PartnerCardData } from "../shared/PartnerCard";
 
 interface ListResponse { items: PartnerCardData[]; total: number; page: number; pageSize: number; }
+interface StatsResponse { total: number; byCategory: { category: string; count: number }[]; }
+
+const TOP_LIMIT = 10;
 
 export default function SearchResultsPage() {
   const { category: categoryParam } = useParams();
@@ -12,6 +15,7 @@ export default function SearchResultsPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<PartnerCardData[]>([]);
   const [total, setTotal] = useState(0);
+  const [overallTotal, setOverallTotal] = useState(0); // 필터와 무관한 전체 협약기관 수 (상세검색 패널에 표시)
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   // 서버는 페이지 단위로 가져온 뒤 종료된 협약을 걸러내므로(백엔드 partners.service.ts 주석 참고),
@@ -31,13 +35,30 @@ export default function SearchResultsPage() {
   const sort = searchParams.get("sort") ?? "name";
 
   const categoryDef = categoryCode ? CATEGORIES.find((c) => c.code === categoryCode) ?? null : null;
+  // 대분류/검색어가 전혀 없는 기본 화면에서는 "자주찾는 협약기관" TOP 10만 보여준다 (2026-08-18 요청).
+  const isDefaultBrowse = !categoryDef && !q;
 
   const [qDraft, setQDraft] = useState(q);
   useEffect(() => setQDraft(q), [q]);
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
+  useEffect(() => {
+    api.get<StatsResponse>("/partners/stats").then((d) => setOverallTotal(d.total)).catch(() => {});
+  }, []);
+
   async function load(nextPage: number, append: boolean) {
     setLoading(true);
+
+    if (isDefaultBrowse) {
+      const data = await api.get<{ items: PartnerCardData[] }>(`/partners/top?limit=${TOP_LIMIT}`);
+      setItems(data.items);
+      setTotal(data.items.length);
+      setPage(1);
+      setExhausted(true); // TOP 10 고정 — 더보기 없음
+      setLoading(false);
+      return;
+    }
+
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (categoryCode) params.set("category", categoryCode);
@@ -146,6 +167,8 @@ export default function SearchResultsPage() {
             ))}
           </div>
 
+          <p className="text-sm text-red-600 font-bold mb-3">총 {overallTotal}개</p>
+
           {categoryDef && (
             <>
               <p className="text-xs text-slate-400 mb-2">세부분류 선택</p>
@@ -170,8 +193,11 @@ export default function SearchResultsPage() {
       </details>
 
       <div className="flex items-center justify-between mb-3">
-        <h1 className="text-lg font-bold text-slate-900">
+        <h1 className="text-lg font-bold text-slate-900 flex items-center gap-1.5">
           {categoryDef ? categoryDef.label : q ? `"${q}" 검색결과` : "자주찾는 협약기관"}
+          {isDefaultBrowse && (
+            <span className="text-[11px] font-bold bg-brand-900 text-white px-1.5 py-0.5 rounded-full">TOP {TOP_LIMIT}</span>
+          )}
         </h1>
         {categoryDef && (
           <button onClick={clearCategory} className="text-xs text-slate-400 underline">분류 해제</button>
@@ -183,8 +209,9 @@ export default function SearchResultsPage() {
         <button onClick={() => setFilter("memberDiscount", !memberDiscount)} className={`text-xs px-2.5 py-1 rounded-full border ${memberDiscount ? "bg-orange-100 text-orange-700 border-orange-300" : "bg-white border-slate-300 text-slate-600"}`}>조합원 할인</button>
         <button onClick={() => setFilter("familyAvailable", !familyAvailable)} className={`text-xs px-2.5 py-1 rounded-full border ${familyAvailable ? "bg-purple-100 text-purple-700 border-purple-300" : "bg-white border-slate-300 text-slate-600"}`}>가족 이용 가능</button>
         <select value={sort} onChange={(e) => setFilter("sort", e.target.value)} className="text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 ml-auto">
-          <option value="name">가나다순</option>
-          <option value="latest">최신 협약순</option>
+          <option value="name">검색순</option>
+          <option value="latest">최신순</option>
+          <option value="relevance">관련도순</option>
         </select>
       </div>
 
