@@ -14,6 +14,14 @@ interface StatsResponse {
 
 const TOP_LIMIT = 10;
 
+// 필터칩과 같은 디자인(둥근 알약 모양, 선택 시 색상 강조)으로 정렬 옵션을 보여준다 (2026-08-18 요청).
+const SORT_OPTIONS: { value: string; label: string; activeClass: string }[] = [
+  { value: "latest", label: "최신순", activeClass: "bg-brand-100 text-brand-700 border-brand-300" },
+  { value: "popularity", label: "검색순", activeClass: "bg-orange-100 text-orange-700 border-orange-300" },
+  { value: "recommend", label: "추천순", activeClass: "bg-purple-100 text-purple-700 border-purple-300" },
+  { value: "distance", label: "내위치순", activeClass: "bg-green-100 text-green-700 border-green-300" },
+];
+
 export default function SearchResultsPage() {
   const { category: categoryParam } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -251,17 +259,16 @@ export default function SearchResultsPage() {
         )}
       </div>
 
-      <div className="flex justify-end mb-4">
-        <select
-          value={sort}
-          onChange={(e) => (e.target.value === "distance" ? requestLocationSort() : setFilter("sort", e.target.value))}
-          className="text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600"
-        >
-          <option value="latest">최신순</option>
-          <option value="popularity">검색순</option>
-          <option value="recommend">추천순</option>
-          <option value="distance">내위치순</option>
-        </select>
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {SORT_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => (opt.value === "distance" ? requestLocationSort() : setFilter("sort", opt.value))}
+            className={`text-xs px-2.5 py-1 rounded-full border ${sort === opt.value ? opt.activeClass : "bg-white border-slate-300 text-slate-600"}`}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
       <p className="text-xs text-slate-400 mb-3">총 {total}곳</p>
