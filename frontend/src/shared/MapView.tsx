@@ -57,18 +57,21 @@ export default function MapView({ markers, height = "240px", zoom = 15, onMarker
             map,
             title: m.title,
             // 기관명을 동그라미 옆에 항상 표시한다 (2026-08-18 요청 — 처음엔 hover로 했다가 "계속
-            // 보이게"로 변경). 네이버 지도 자체 장소명 라벨과 비슷한 글자 크기, 색은 동그라미와 동일.
-            icon: m.category
-              ? {
-                  content: `
-                    <div style="position:relative;">
-                      <div style="background:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4);cursor:pointer;"></div>
-                      <div id="marker-label-${m.id}" class="marker-label" style="position:absolute;top:-3px;left:19px;white-space:nowrap;color:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};font-size:12px;font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;cursor:pointer;">${escapeHtml(m.title)}</div>
-                    </div>
-                  `,
-                  anchor: new naver.maps.Point(7, 7),
-                }
-              : undefined,
+            // 보이게"로 변경). 네이버 지도 자체 장소명 라벨과 비슷한 글자 크기. 대분류 마커는 그
+            // 카테고리 색으로, 상세페이지처럼 마커 하나만 단독으로 찍히는 경우(카테고리 정보 없음)는
+            // 빨간색으로 표시한다 (2026-08-18 추가 요청).
+            icon: (() => {
+              const color = m.category ? CATEGORY_MARKER_COLORS[m.category] ?? "#334155" : "#dc2626";
+              return {
+                content: `
+                  <div style="position:relative;">
+                    <div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4);cursor:pointer;"></div>
+                    <div id="marker-label-${m.id}" class="marker-label" style="position:absolute;top:-3px;left:19px;white-space:nowrap;color:${color};font-size:12px;font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;cursor:pointer;">${escapeHtml(m.title)}</div>
+                  </div>
+                `,
+                anchor: new naver.maps.Point(7, 7),
+              };
+            })(),
           });
           if (onMarkerClick) {
             naver.maps.Event.addListener(marker, "click", () => onMarkerClick(m.id));
