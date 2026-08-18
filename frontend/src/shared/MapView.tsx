@@ -63,7 +63,7 @@ export default function MapView({ markers, height = "240px", zoom = 15, onMarker
                   content: `
                     <div style="position:relative;">
                       <div style="background:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4);cursor:pointer;"></div>
-                      <div class="marker-label" style="position:absolute;top:-3px;left:19px;white-space:nowrap;color:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};font-size:12px;font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;cursor:pointer;">${escapeHtml(m.title)}</div>
+                      <div id="marker-label-${m.id}" class="marker-label" style="position:absolute;top:-3px;left:19px;white-space:nowrap;color:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};font-size:12px;font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;cursor:pointer;">${escapeHtml(m.title)}</div>
                     </div>
                   `,
                   anchor: new naver.maps.Point(7, 7),
@@ -72,6 +72,12 @@ export default function MapView({ markers, height = "240px", zoom = 15, onMarker
           });
           if (onMarkerClick) {
             naver.maps.Event.addListener(marker, "click", () => onMarkerClick(m.id));
+            // 라벨(기관명 글자)이 지도 마커 아이콘의 원래 영역 밖으로 튀어나와 있어, 네이버 지도가
+            // 인식하는 마커 클릭 판정 영역에 라벨 부분은 포함되지 않는 걸 실제로 확인했다
+            // (2026-08-18 — 라벨을 클릭해도 상세페이지로 이동하지 않는 버그). 라벨 DOM에 별도로
+            // 직접 클릭 리스너를 붙여 보완한다.
+            const labelEl = document.getElementById(`marker-label-${m.id}`);
+            labelEl?.addEventListener("click", () => onMarkerClick(m.id));
           }
         });
 
