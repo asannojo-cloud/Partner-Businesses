@@ -14,20 +14,13 @@ interface TopPartner {
   member_benefit: string | null; view_count: number;
 }
 
-interface PartnerStats {
-  total: number;
-  byCategory: { category: string; count: number }[];
-}
-
 export default function HomePage() {
   const [q, setQ] = useState("");
   const [topPartners, setTopPartners] = useState<TopPartner[]>([]);
-  const [stats, setStats] = useState<PartnerStats | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     api.get<{ items: TopPartner[] }>("/partners/top?limit=10").then((d) => setTopPartners(d.items)).catch(() => setTopPartners([]));
-    api.get<PartnerStats>("/partners/stats").then(setStats).catch(() => setStats(null));
   }, []);
 
   function handleSearch(e: FormEvent) {
@@ -48,23 +41,6 @@ export default function HomePage() {
           />
         </div>
       </form>
-
-      {stats && (
-        <div className="mb-5 rounded-2xl bg-white border border-slate-200 px-4 py-3">
-          <p className="text-sm mb-2">
-            현재 총 <span className="font-bold text-brand-700">{stats.total}</span>개 협약기관
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {[...stats.byCategory]
-              .sort((a, b) => b.count - a.count)
-              .map((c) => (
-                <span key={c.category} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
-                  {categoryLabel(c.category)} {c.count}
-                </span>
-              ))}
-          </div>
-        </div>
-      )}
 
       <button
         onClick={() => navigate("/search")}

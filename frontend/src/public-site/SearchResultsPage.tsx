@@ -171,7 +171,7 @@ export default function SearchResultsPage() {
 
       <div className="flex items-center justify-between mb-3">
         <h1 className="text-lg font-bold text-slate-900">
-          {categoryDef ? categoryDef.label : q ? `"${q}" 검색결과` : "전체 협약기관"}
+          {categoryDef ? categoryDef.label : q ? `"${q}" 검색결과` : "자주찾는 협약기관"}
         </h1>
         {categoryDef && (
           <button onClick={clearCategory} className="text-xs text-slate-400 underline">분류 해제</button>
