@@ -17,26 +17,26 @@ export default function PublicLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-brand-900 text-white px-4 py-3 shrink-0 flex items-center justify-between gap-2">
-        <a
-          href={MEMBER_CARD_APP_URL}
-          aria-label="조합원증 앱으로 돌아가기"
-          title="조합원증 앱으로 돌아가기"
-          className="w-8 h-8 flex items-center justify-center text-xl bg-white/10 rounded-full shrink-0"
-        >
-          🏠
-        </a>
-        <Link to="/" className="flex items-center gap-2 min-w-0 flex-1">
+      <header className="bg-brand-900 text-white px-4 py-2.5 shrink-0 flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <a
+            href={MEMBER_CARD_APP_URL}
+            aria-label="조합원증 앱으로 돌아가기"
+            title="조합원증 앱으로 돌아가기"
+            className="flex items-center gap-1 text-xs font-bold bg-white/10 rounded-full px-2.5 py-1.5 shrink-0"
+          >
+            <span className="text-lg leading-none">🏠</span>
+            <span>HOME</span>
+          </a>
+          <a href="tel:0415402667" className="flex items-center gap-1 text-xs bg-white/10 rounded-full px-3 py-1.5 shrink-0">
+            <span>☎</span>
+            <span>041-540-2667</span>
+          </a>
+        </div>
+        <Link to="/" className="flex items-center gap-2 min-w-0">
           <img src="/union-logo.png" alt="" className="h-8 w-8 object-contain bg-white rounded-full p-1 shrink-0" />
-          <span>
-            <p className="text-[11px] text-brand-200">아산시공무원노동조합</p>
-            <p className="font-bold">협약기관 안내</p>
-          </span>
+          <p className="font-bold text-sm whitespace-nowrap">아산시공무원노동조합 협약기관 안내</p>
         </Link>
-        <a href="tel:0415402667" className="flex items-center gap-1 text-xs bg-white/10 rounded-full px-3 py-1.5 shrink-0">
-          <span>☎</span>
-          <span>041-540-2667</span>
-        </a>
       </header>
 
       <main className="flex-1 min-w-0 pb-16">
