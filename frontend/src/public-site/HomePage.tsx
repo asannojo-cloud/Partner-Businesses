@@ -7,7 +7,7 @@ import { categoryLabel } from "../shared/formatters";
 const CATEGORY_ICONS: Record<string, string> = {
   medical: "🏥", restaurant: "🍽️", culture: "🎭", education: "📚", childcare: "🧸",
   automobile: "🚗", telecom: "📱", living: "🧺", finance: "🏦", etc: "🗂️",
-  custom_11: "🧓", marriage: "💒", coffee_bakery: "☕",
+  custom_11: "🧓", marriage: "💒", coffee_bakery: "☕", hotspring: "♨️",
 };
 const DEFAULT_CATEGORY_ICON = "📦"; // 관리자가 새 대분류를 추가하면 아이콘이 아직 없을 수 있다.
 
