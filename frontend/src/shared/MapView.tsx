@@ -63,7 +63,7 @@ export default function MapView({ markers, height = "240px", zoom = 15, onMarker
                   content: `
                     <div style="position:relative;">
                       <div style="background:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4);cursor:pointer;"></div>
-                      <div class="marker-label" style="position:absolute;top:-3px;left:19px;white-space:nowrap;color:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};font-size:12px;font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;pointer-events:none;">${escapeHtml(m.title)}</div>
+                      <div class="marker-label" style="position:absolute;top:-3px;left:19px;white-space:nowrap;color:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};font-size:12px;font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;cursor:pointer;">${escapeHtml(m.title)}</div>
                     </div>
                   `,
                   anchor: new naver.maps.Point(7, 7),
