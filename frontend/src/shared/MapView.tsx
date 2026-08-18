@@ -10,10 +10,14 @@ export interface MapMarkerData {
   category?: string;
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 export const CATEGORY_MARKER_COLORS: Record<string, string> = {
-  medical: "#2563eb", restaurant: "#ea580c", culture: "#7c3aed", education: "#0891b2",
-  childcare: "#db2777", automobile: "#4b5563", telecom: "#059669", living: "#ca8a04",
-  finance: "#16a34a", etc: "#64748b",
+  medical: "#2563eb", restaurant: "#ea580c", marriage: "#db2777", automobile: "#4b5563",
+  telecom: "#059669", living: "#ca8a04", coffee_bakery: "#92400e", etc: "#64748b",
+  custom_11: "#475569", education: "#0891b2", hotspring: "#0d9488",
 };
 
 interface Props {
@@ -52,9 +56,16 @@ export default function MapView({ markers, height = "240px", zoom = 15, onMarker
             position: new naver.maps.LatLng(m.lat, m.lng),
             map,
             title: m.title,
+            // 마커 근처(hover)에 가면 기관명이 옆에 뜨도록, 색깔 동그라미 + 평소엔 숨겨진 이름표를
+            // 한 컨테이너에 넣고 마우스 진입/이탈로 보이기/숨기기를 전환한다 (2026-08-18 요청).
             icon: m.category
               ? {
-                  content: `<div style="background:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4)"></div>`,
+                  content: `
+                    <div style="position:relative;" onmouseenter="this.querySelector('.marker-label').style.display='block'" onmouseleave="this.querySelector('.marker-label').style.display='none'">
+                      <div style="background:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4);cursor:pointer;"></div>
+                      <div class="marker-label" style="display:none;position:absolute;top:-4px;left:20px;white-space:nowrap;background:#111827;color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.3);pointer-events:none;">${escapeHtml(m.title)}</div>
+                    </div>
+                  `,
                   anchor: new naver.maps.Point(7, 7),
                 }
               : undefined,
