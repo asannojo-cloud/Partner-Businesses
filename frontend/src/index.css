@@ -49,4 +49,15 @@
     color: inherit;
     text-decoration: none;
   }
+
+  /* 지도 마커 위에 마우스를 올리면(hover) 기관명 라벨을 보여준다 (MapView.tsx). CSP의
+     script-src에 'unsafe-inline'이 없어 마커 HTML에 onmouseenter= 같은 인라인 JS 속성을 써도
+     조용히 무시된다는 걸 뒤늦게 발견했다 (2026-08-18) — style-src는 'unsafe-inline'이 있어
+     CSS :hover는 정상 동작하므로 JS 대신 순수 CSS로 전환했다.*/
+  .map-marker-group .marker-label {
+    display: none;
+  }
+  .map-marker-group:hover .marker-label {
+    display: block;
+  }
 }

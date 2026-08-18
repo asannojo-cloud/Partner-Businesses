@@ -56,14 +56,15 @@ export default function MapView({ markers, height = "240px", zoom = 15, onMarker
             position: new naver.maps.LatLng(m.lat, m.lng),
             map,
             title: m.title,
-            // 마커 근처(hover)에 가면 기관명이 옆에 뜨도록, 색깔 동그라미 + 평소엔 숨겨진 이름표를
-            // 한 컨테이너에 넣고 마우스 진입/이탈로 보이기/숨기기를 전환한다 (2026-08-18 요청).
+            // 마커 근처(hover)에 가면 기관명이 옆에 뜨도록 한다 (2026-08-18 요청). 순수 CSS
+            // :hover로 처리한다 — CSP script-src에 'unsafe-inline'이 없어 onmouseenter= 같은
+            // 인라인 JS 속성은 조용히 무시되는 걸 실제로 확인했다 (index.css .map-marker-group 참고).
             icon: m.category
               ? {
                   content: `
-                    <div style="position:relative;" onmouseenter="this.querySelector('.marker-label').style.display='block'" onmouseleave="this.querySelector('.marker-label').style.display='none'">
+                    <div class="map-marker-group" style="position:relative;">
                       <div style="background:${CATEGORY_MARKER_COLORS[m.category] ?? "#334155"};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4);cursor:pointer;"></div>
-                      <div class="marker-label" style="display:none;position:absolute;top:-4px;left:20px;white-space:nowrap;background:#111827;color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.3);pointer-events:none;">${escapeHtml(m.title)}</div>
+                      <div class="marker-label" style="position:absolute;top:-4px;left:20px;white-space:nowrap;background:#111827;color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.3);pointer-events:none;">${escapeHtml(m.title)}</div>
                     </div>
                   `,
                   anchor: new naver.maps.Point(7, 7),
