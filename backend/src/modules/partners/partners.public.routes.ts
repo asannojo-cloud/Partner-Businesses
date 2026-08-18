@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { pool } from "../../db/pool";
 import { listPublicPartners, getPublicPartnerDetail, getTopViewedPartners, getPublicPartnerStats } from "./partners.service";
 
 export const publicPartnersRouter = Router();
@@ -11,7 +12,7 @@ const listQuerySchema = z.object({
   healthCheck: z.coerce.boolean().optional(),
   memberDiscount: z.coerce.boolean().optional(),
   familyAvailable: z.coerce.boolean().optional(),
-  sort: z.enum(["name", "latest", "distance", "relevance"]).optional(),
+  sort: z.enum(["name", "latest", "distance", "relevance", "popularity", "recommend"]).optional(),
   lat: z.coerce.number().optional(),
   lng: z.coerce.number().optional(),
   page: z.coerce.number().int().min(1).default(1),
@@ -36,6 +37,24 @@ publicPartnersRouter.get("/top", async (req, res) => {
 
 publicPartnersRouter.get("/stats", async (req, res) => {
   res.json(await getPublicPartnerStats());
+});
+
+// 즐겨찾기는 로그인 없이 클라이언트(localStorage)에만 저장되므로 "몇 명이" 즐겨찾기했는지는 알 수
+// 없지만, "몇 번" 즐겨찾기 토글이 일어났는지는 이 익명 카운터로 집계해 "추천순" 정렬에 쓴다.
+// 로그인이 없어 동일 기기에서의 어뷰징(반복 클릭)까지 막지는 못하지만, 조합원 내부용 안내 앱
+// 특성상 심각한 문제는 아니라고 판단했다 (2026-08-18).
+publicPartnersRouter.post("/:id/favorite", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "잘못된 기관 ID입니다." });
+  await pool.query(`UPDATE partners SET favorite_count = favorite_count + 1 WHERE id = $1`, [id]);
+  res.json({ ok: true });
+});
+
+publicPartnersRouter.delete("/:id/favorite", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "잘못된 기관 ID입니다." });
+  await pool.query(`UPDATE partners SET favorite_count = GREATEST(favorite_count - 1, 0) WHERE id = $1`, [id]);
+  res.json({ ok: true });
 });
 
 publicPartnersRouter.get("/:id", async (req, res) => {

@@ -38,7 +38,7 @@ export default function SearchResultsPage() {
   const healthCheck = searchParams.get("healthCheck") === "true";
   const memberDiscount = searchParams.get("memberDiscount") === "true";
   const familyAvailable = searchParams.get("familyAvailable") === "true";
-  const sort = searchParams.get("sort") ?? "name";
+  const sort = searchParams.get("sort") ?? "latest";
 
   const categoryDef = categoryCode ? CATEGORIES.find((c) => c.code === categoryCode) ?? null : null;
   // 대분류/검색어가 전혀 없는 기본 화면에서는 "자주찾는 협약기관" TOP 10만 보여준다 (2026-08-18 요청).
@@ -222,9 +222,9 @@ export default function SearchResultsPage() {
         <button onClick={() => setFilter("memberDiscount", !memberDiscount)} className={`text-xs px-2.5 py-1 rounded-full border ${memberDiscount ? "bg-orange-100 text-orange-700 border-orange-300" : "bg-white border-slate-300 text-slate-600"}`}>조합원 할인</button>
         <button onClick={() => setFilter("familyAvailable", !familyAvailable)} className={`text-xs px-2.5 py-1 rounded-full border ${familyAvailable ? "bg-purple-100 text-purple-700 border-purple-300" : "bg-white border-slate-300 text-slate-600"}`}>가족 이용 가능</button>
         <select value={sort} onChange={(e) => setFilter("sort", e.target.value)} className="text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 ml-auto">
-          <option value="name">검색순</option>
           <option value="latest">최신순</option>
-          <option value="relevance">관련도순</option>
+          <option value="popularity">검색순</option>
+          <option value="recommend">추천순</option>
         </select>
       </div>
 

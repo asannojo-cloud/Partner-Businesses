@@ -8,7 +8,7 @@ export interface PublicPartnerFilters {
   healthCheck?: boolean;
   memberDiscount?: boolean;
   familyAvailable?: boolean;
-  sort?: "name" | "latest" | "distance" | "relevance";
+  sort?: "name" | "latest" | "distance" | "relevance" | "popularity" | "recommend";
   lat?: number;
   lng?: number;
   page: number;
@@ -59,6 +59,10 @@ export async function listPublicPartners(filters: PublicPartnerFilters) {
 
   let orderBy = "p.name ASC";
   if (filters.sort === "latest") orderBy = "a.start_date DESC NULLS LAST, p.created_at DESC";
+  // 검색순: 조회수(view_count, 상세페이지를 몇 번 봤는지)를 "많이 찾아본" 순서의 지표로 쓴다.
+  if (filters.sort === "popularity") orderBy = "p.view_count DESC, p.name ASC";
+  // 추천순: 즐겨찾기 토글 누적 횟수(favorite_count)로 정렬한다.
+  if (filters.sort === "recommend") orderBy = "p.favorite_count DESC, p.name ASC";
   // 관련도순: pg_trgm similarity()로 검색어와 기관명이 얼마나 비슷한지 점수를 매겨 정렬한다.
   // 검색어가 없으면 "관련도"라는 개념 자체가 성립하지 않으므로 기본(이름순)으로 둔다.
   if (filters.sort === "relevance" && filters.q && filters.q.trim()) {
