@@ -30,7 +30,11 @@ function mockGeocode(address: string): GeocodeResult {
 }
 
 async function naverGeocode(address: string): Promise<GeocodeResult> {
-  const url = `https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=${encodeURIComponent(address)}`;
+  // NCP가 API 게이트웨이 도메인을 옛 "AI NAVER API"용 naveropenapi.apigw.ntruss.com에서
+  // 새 "Maps" 상품용 maps.apigw.ntruss.com으로 옮겼다 — 옛 도메인으로 호출하면 실제 키가 맞아도
+  // 401 "구독이 필요합니다"로 거부된다는 걸 실제로 확인했다 (2026-08-20 실제 발견 — 빕스 등
+  // 일부 기관 좌표가 부정확했던 근본 원인).
+  const url = `https://maps.apigw.ntruss.com/map-geocode/v2/geocode?query=${encodeURIComponent(address)}`;
   try {
     const res = await fetch(url, {
       headers: {
